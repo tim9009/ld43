@@ -70,6 +70,7 @@ map.init = function() {
 
 	this.locations.base = new Location({
 		name: 'Base',
+		travelTime: 0,
 		pos: {
 			x: Vroom.dim.width - 35,
 			y: Vroom.dim.height - 26,
@@ -83,6 +84,7 @@ map.init = function() {
 
 	this.locations.thermal = new Location({
 		name: 'Thermal',
+		travelTime: 3,
 		pos: {
 			x: 42,
 			y: 84,
@@ -92,18 +94,6 @@ map.init = function() {
 			height: 42,
 		},
 		sprite: new VroomSprite('sprites/thermal.png', false),
-	});
-
-	this.locations.three = new Location({
-		name: 'Three',
-		pos: {
-			x: 30,
-			y: 120,
-		},
-		dim: {
-			width: 40,
-			height: 40,
-		}
 	});
 
 	// Register entity

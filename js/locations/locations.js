@@ -8,6 +8,14 @@ function Location(initArgs) {
 	this.layer = 2;
 	this.tasks = [];
 	this.active = false;
+	this.structure = {
+		max: 100,
+		current: 50,
+		deteriorationRate: 0.2,
+	};
+	this.timeTickCounter = 0;
+	this.eventInterval = 10;
+	this.travelTime = initArgs.travelTime || 0;
 
 	// Dim
 	this.dim = initArgs.dim || {};
@@ -32,6 +40,7 @@ function Location(initArgs) {
 	// Windows
 	this.windows = {};
 	this.windows.main = new Window({
+		parent: this,
 		title: this.name,
 		closeButton: true,
 		dim: {
@@ -47,6 +56,84 @@ function Location(initArgs) {
 				top: 10,
 				right: 10,
 			},
+		},
+		updateHook: function() {
+			var margin = 2;
+			var taskOffsetTop = 15;
+
+			var dim = {
+				width: (this.contentDim.width / 2) - (margin / 2),
+				height: 40,
+			};
+
+			var rows = 0;
+			for(var i = 0; i < this.parent.tasks.length; i++) {
+				var pos = {
+					x: this.contentPos.x,
+					y: this.contentPos.y + ((dim.height + margin) * rows) + taskOffsetTop,
+				};
+
+				// Check if even
+				if(Math.abs(i % 2) === 1) {
+					rows += 1;
+					pos.x += dim.width + margin;
+				}
+
+				if(Vroom.isAreaClicked(pos, dim, false)) {
+					this.parent.tasks[i].open();
+					console.log(this.inputActive);
+					this.deactivateInput();
+				}
+			}
+		},
+		renderHook: function() {
+			// Data
+			var dataString = 'Maintenance: ' + Math.floor((this.parent.structure.current * 100) / this.parent.structure.max) + '%';
+
+			var dataStringOffsetTop = 2;
+
+			Vroom.ctx.textAlign = 'left';
+			Vroom.ctx.font = '6px lcd_solid';
+			Vroom.ctx.fillStyle = '#fff';
+			Vroom.ctx.fillText(dataString, this.contentPos.x, this.contentPos.y + dataStringOffsetTop);
+
+			// Tasks
+			var taskOffsetTop = 15;
+			var margin = 2;
+
+			var dim = {
+				width: (this.contentDim.width / 2) - (margin / 2),
+				height: 40
+			};
+
+			var rows = 0;
+
+			for(var i = 0; i < this.parent.tasks.length; i++) {
+				var pos = {
+					x: this.contentPos.x,
+					y: this.contentPos.y + ((dim.height + margin) * rows) + taskOffsetTop,
+				};
+
+				// Check if even
+				if(Math.abs(i % 2) === 1) {
+					rows += 1;
+					pos.x += dim.width + margin;
+				}
+
+				// Box
+				Vroom.ctx.fillStyle = '#333';
+				Vroom.ctx.fillRect(pos.x, pos.y, dim.width, dim.height);
+
+				// Title
+				Vroom.ctx.textAlign = 'left';
+				Vroom.ctx.font = '8px lcd_solid';
+				Vroom.ctx.fillStyle = '#fff';
+				Vroom.ctx.fillText(this.parent.tasks[i].title, pos.x + 4, pos.y + 10);
+
+				Vroom.ctx.font = '6px lcd_solid';
+				// Description
+				Vroom.multilineText(this.parent.tasks[i].description, {x: pos.x + 4, y: pos.y + 20}, 7);
+			}
 		}
 	});
 
@@ -84,6 +171,23 @@ Location.prototype.update = function(step) {
 	if(!this.active && Vroom.isMouseOverArea(this.pos, this.dim)) {
 		this.hover = true;
 	}
+
+	// Deteriorate
+	if(gameState.timeTick) {
+		this.structure.current -= this.structure.deteriorationRate;
+		this.timeTickCounter++;
+	}
+
+	// Events
+	if(this.timeTickCounter >= this.eventInterval) {
+		this.timeTickCounter = 0;
+
+		var random = Math.floor(Math.random() * this.structure.max) - (this.tasks.length * 25);
+		console.log(random);
+		if(random > this.structure.current) {
+			this.addTask();
+		}
+	}
 };
 
 // Render function. Draws all elements related to this module to screen.
@@ -103,14 +207,50 @@ Location.prototype.render = function(camera) {
 };
 
 Location.prototype.onRegister = function() {
-	for (var entity in this.windows) {
-		Vroom.registerEntity(this.windows[entity]);
+	// Register windows
+	for (var windowEntity in this.windows) {
+		Vroom.registerEntity(this.windows[windowEntity]);
+	}
+
+	// register tasks
+	for (var taskEntity in this.tasks) {
+		Vroom.registerEntity(this.tasks[taskEntity]);
+		this.tasks[taskEntity].onRegister();
 	}
 };
 
 Location.prototype.onDeregister = function() {
-	for (var entity in this.windows) {
-		this.windows[entity].hide();
-		Vroom.registerEntity(this.windows[entity]);
+	// Register windows
+	for (var windowEntity in this.windows) {
+		this.windows[windowEntity].hide();
+		Vroom.deregisterEntity(this.windows[windowEntity]._id);
 	}
+
+	// Register tasks
+	for (var taskEntity in this.tasks) {
+		Vroom.deregisterEntity(this.tasks[taskEntity]._id);
+		this.tasks[taskEntity].onDeregister();
+	}
+};
+
+Location.prototype.addTask = function() {
+	// Create and add task
+	this.tasks.push(
+		new Task({
+			parent: this,
+			timeToCompleteWork: 5,
+			travelTime: 3,
+			title: 'General maintenence',
+			description: 'There are som early signs of\ndamage. Someone should probably\nhave a look at it.'
+		})
+	);
+
+	// Register task
+	Vroom.registerEntity(this.tasks[this.tasks.length - 1]);
+	this.tasks[this.tasks.length - 1].onRegister();
+};
+
+Location.prototype.removeTask = function(id) {
+	Vroom.deregisterEntity(this.tasks[taskEntity]._id);
+	this.tasks[this.tasks.length - 1].onDeregister();
 };
