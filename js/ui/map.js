@@ -21,7 +21,7 @@ map.init = function() {
 
 	this.background = new VroomSprite('sprites/map.png', false);
 
-	this.scrollTriggerSize = 20;
+	this.scrollTriggerSize = 10;
 
 	this.scrollTriggers = {
 		top: {
@@ -68,28 +68,30 @@ map.init = function() {
 
 	this.locations = {};
 
-	this.locations.one = new Location({
-		name: 'One',
+	this.locations.base = new Location({
+		name: 'Base',
 		pos: {
-			x: 60,
-			y: 20,
+			x: Vroom.dim.width - 35,
+			y: Vroom.dim.height - 26,
 		},
 		dim: {
-			width: 40,
-			height: 40,
-		}
+			width: 70,
+			height: 52,
+		},
+		sprite: new VroomSprite('sprites/base.png', false),
 	});
 
-	this.locations.two = new Location({
-		name: 'Two',
+	this.locations.thermal = new Location({
+		name: 'Thermal',
 		pos: {
-			x: 200,
-			y: 80,
+			x: 42,
+			y: 84,
 		},
 		dim: {
-			width: 40,
-			height: 40,
-		}
+			width: 44,
+			height: 42,
+		},
+		sprite: new VroomSprite('sprites/thermal.png', false),
 	});
 
 	this.locations.three = new Location({
@@ -144,8 +146,8 @@ map.update = function(step) {
 			Vroom.activeCamera.pos.x = this.dim.width - Vroom.dim.width;
 		}
 
-		if(Vroom.activeCamera.pos.y < 0) {
-			Vroom.activeCamera.pos.y = 0;
+		if(Vroom.activeCamera.pos.y < 0 - generalInterface.dim.height) {
+			Vroom.activeCamera.pos.y = 0 - generalInterface.dim.height;
 		}
 
 		if(Vroom.activeCamera.pos.y + Vroom.dim.height > this.dim.height) {
@@ -158,7 +160,7 @@ map.update = function(step) {
 // Render function. Draws all elements related to this module to screen.
 map.render = function(camera) {
 	if(this.visible) {
-		this.background.render(Vroom.getCameraRelativePos(this.pos, camera), Vroom.getCameraRelativeDim(this.dim, camera));
+		this.background.render(Vroom.getCameraRelativePos(this.pos), this.dim);
 	}
 };
 

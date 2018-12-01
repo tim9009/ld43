@@ -35,20 +35,22 @@ function Location(initArgs) {
 		title: this.name,
 		closeButton: true,
 		dim: {
-			width: 250,
-			height: 120,
+			width: Vroom.dim.width - 30,
+			height: Vroom.dim.height - 30,
 		},
 		pos: {
-			x: 20,
+			x: 15,
 			y: 20,
 		},
 		style: {
 			padding: {
-				left: 10,
 				top: 10,
+				right: 10,
 			},
 		}
 	});
+
+	this.sprite = initArgs.sprite || null;
 
 	this.init();
 }
@@ -64,15 +66,23 @@ Location.prototype.init = function() {
 
 // Update function. Handles all logic for objects related to this class.
 Location.prototype.update = function(step) {
+	// Activate
 	if(map.inputActive && Vroom.isAreaClicked(this.pos, this.dim)) {
 		this.active = true;
 		this.windows.main.show();
 		map.deactivateInput();
 	}
 
+	// Deactivate
 	if(this.active && !this.windows.main.visible) {
 		this.active = false;
 		map.activateInput();
+	}
+
+	// Hover
+	this.hover = false;
+	if(!this.active && Vroom.isMouseOverArea(this.pos, this.dim)) {
+		this.hover = true;
 	}
 };
 
@@ -80,12 +90,16 @@ Location.prototype.update = function(step) {
 Location.prototype.render = function(camera) {
 	var relPos = Vroom.getCameraRelativePos(this.pos);
 
-	Vroom.ctx.fillStyle = 'red';
-	Vroom.ctx.fillRect(relPos.x, relPos.y, this.dim.width, this.dim.height);
+	if(this.sprite) {
+		this.sprite.render(relPos, this.dim);
+	}
 
-	Vroom.ctx.fillStyle = '#fff';
-	Vroom.ctx.font = "8px lcd_solid";
-	Vroom.ctx.fillText(this.name, relPos.x + 5, relPos.y + this.halfDim.height + 4);
+	if(this.hover) {
+		Vroom.ctx.fillStyle = '#fff';
+		Vroom.ctx.textAlign = 'center';
+		Vroom.ctx.font = '8px lcd_solid';
+		Vroom.ctx.fillText(this.name, relPos.x + this.halfDim.width, relPos.y + this.halfDim.height);
+	}
 };
 
 Location.prototype.onRegister = function() {

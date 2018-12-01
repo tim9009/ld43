@@ -1,7 +1,11 @@
 ////////////////////////////// START ENGINE //////////////////////////////
 function start() {
-	Vroom.activateCamera(Vroom.createCamera(0, 0, 1, 'both', 0.007));
-	//Vroom.activeCamera.follow(person._id);
+	var startPos = {
+		x: Vroom.dim.width / 2,
+		y: Vroom.dim.height / 2,
+	};
+
+	Vroom.activateCamera(Vroom.createCamera(startPos.x, startPos.y, 1, 'both', 0.007));
 
 	// Disable image smooting
 	var imageSmoothingEnabled = false;

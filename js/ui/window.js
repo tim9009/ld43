@@ -82,7 +82,7 @@ Window.prototype.init = function() {
 // Update function. Handles all logic for objects related to this class.
 Window.prototype.update = function(step) {
 	if(this.visible) {
-		if(Vroom.isAreaClicked(this.closeButtonPos, this.closeButtonDim, false)) {
+		if(this.closeButton && (Vroom.isAreaClicked(this.closeButtonPos, this.closeButtonDim, false) || Vroom.isKeyPressed(27))) {
 			this.hide();
 		}
 	}
@@ -91,16 +91,26 @@ Window.prototype.update = function(step) {
 // Render function. Draws all elements related to this module to screen.
 Window.prototype.render = function(camera) {
 	if(this.visible) {
-		Vroom.ctx.fillStyle = '#949494';
+		// Window
+		Vroom.ctx.textAlign = 'left';
+		Vroom.ctx.fillStyle = '#627F89';
 		Vroom.ctx.fillRect(this.pos.x, this.pos.y, this.dim.width, this.dim.height);
 
-		Vroom.ctx.fillStyle = 'red';
-		Vroom.ctx.fillRect(this.closeButtonPos.x, this.closeButtonPos.y, this.closeButtonDim.width, this.closeButtonDim.height);
+		// Close button
+		if(this.closeButton) {
+			Vroom.ctx.font = '7px lcd_solid';
+			Vroom.ctx.fillStyle = '#fff';
+			Vroom.ctx.fillRect(this.closeButtonPos.x, this.closeButtonPos.y, this.closeButtonDim.width, this.closeButtonDim.height);
+			Vroom.ctx.fillStyle = '#627F89';
+			Vroom.ctx.fillText('X', this.closeButtonPos.x + 3, this.closeButtonPos.y + 8);
+		}
 
+		// Title
+		Vroom.ctx.font = '8px lcd_solid';
 		Vroom.ctx.fillStyle = '#fff';
-		Vroom.ctx.font = "8px lcd_solid";
 		Vroom.ctx.fillText(this.title, this.contentPos.x, this.contentPos.y + 8);
 
+		// Content
 		this.renderContent(camera);
 	}
 };
