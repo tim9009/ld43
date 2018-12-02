@@ -7,12 +7,12 @@ var gameState = {
 	gameStarted: false,
 	time: 0,
 	lastTimeUpdate: null,
-	timeInterval: 1000,
+	timeInterval: 100,
 	timeTick: false,
 	levels: {
 		oxygen: {
 			max: 1000,
-			current: 500,
+			current: 1000,
 			usage: 2,
 		},
 		water: {

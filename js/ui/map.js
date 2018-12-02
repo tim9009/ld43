@@ -66,6 +66,7 @@ map.init = function() {
 		},
 	};
 
+	// Locations
 	this.locations = {};
 
 	this.locations.base = new Location({
@@ -79,6 +80,30 @@ map.init = function() {
 			width: 70,
 			height: 52,
 		},
+		usage: {
+			oxygen: 1,
+			water: 1,
+			power: 2,
+		},
+		availableProblems: [
+			{
+				title: 'problem 1',
+				description: 'Problem overe here yo',
+				usage: {
+					oxygen: 2,
+				},
+				severity: 10,
+			},
+			{
+				title: 'problem 2',
+				description: 'Another problem overe here yo',
+				usage: {
+					oxygen: 3,
+					power: 2,
+				},
+				severity: 30,
+			},
+		],
 		sprite: new VroomSprite('sprites/base.png', false),
 	});
 
@@ -93,6 +118,30 @@ map.init = function() {
 			width: 44,
 			height: 42,
 		},
+		usage: {
+			oxygen: 1,
+			water: 1,
+			power: 2,
+		},
+		availableProblems: [
+			{
+				title: 'problem 1',
+				description: 'Problem overe here yo',
+				usage: {
+					oxygen: 2,
+				},
+				severity: 10,
+			},
+			{
+				title: 'problem 2',
+				description: 'Another problem overe here yo',
+				usage: {
+					oxygen: 3,
+					power: 2,
+				},
+				severity: 30,
+			},
+		],
 		sprite: new VroomSprite('sprites/thermal.png', false),
 	});
 

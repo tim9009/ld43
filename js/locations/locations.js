@@ -17,6 +17,44 @@ function Location(initArgs) {
 	this.eventInterval = 10;
 	this.travelTime = initArgs.travelTime || 0;
 
+	// Resources
+	this.usage = initArgs.usage || null;
+	if(this.usage) {
+		this.usage.oxygen = initArgs.usage.oxygen || 0;
+		this.usage.water = initArgs.usage.water || 0;
+		this.usage.power = initArgs.usage.power || 0;
+	} else {
+		this.usage = {};
+		this.usage.oxygen = 0;
+		this.usage.water = 0;
+		this.usage.power = 0;
+	}
+
+	// Problems
+	var availableProblems = [];
+	for(var problem in initArgs.availableProblems) {
+		var usage = {};
+		if(initArgs.availableProblems[problem].usage) {
+			usage.oxygen = initArgs.availableProblems[problem].usage.oxygen || 0;
+			usage.water = initArgs.availableProblems[problem].usage.water || 0;
+			usage.power = initArgs.availableProblems[problem].usage.power || 0;
+		} else {
+			usage.oxygen = 0;
+			usage.water = 0;
+			usage.power = 0;
+		}
+
+		availableProblems.push({
+			title: initArgs.availableProblems[problem].title || 'No title',
+			description: initArgs.availableProblems[problem].description || 'No description',
+			usage: usage,
+			severity: initArgs.availableProblems[problem].severity || 0,
+		});
+	}
+	this.availableProblems = availableProblems;
+	this.problems = [];
+
+
 	// Dim
 	this.dim = initArgs.dim || {};
 	if(initArgs.dim) {
@@ -81,7 +119,6 @@ function Location(initArgs) {
 
 				if(Vroom.isAreaClicked(pos, dim, false)) {
 					this.parent.tasks[i].open();
-					console.log(this.inputActive);
 					this.deactivateInput();
 				}
 			}
@@ -103,7 +140,7 @@ function Location(initArgs) {
 
 			var dim = {
 				width: (this.contentDim.width / 2) - (margin / 2),
-				height: 40
+				height: 32
 			};
 
 			var rows = 0;
@@ -183,8 +220,9 @@ Location.prototype.update = function(step) {
 		this.timeTickCounter = 0;
 
 		var random = Math.floor(Math.random() * this.structure.max) - (this.tasks.length * 25);
-		console.log(random);
 		if(random > this.structure.current) {
+			console.log('Hello, my name is: ', this.name);
+			console.log('BEFORE: ', this.problems);
 			this.addTask();
 		}
 	}
@@ -234,23 +272,50 @@ Location.prototype.onDeregister = function() {
 };
 
 Location.prototype.addTask = function() {
-	// Create and add task
-	this.tasks.push(
-		new Task({
-			parent: this,
-			timeToCompleteWork: 5,
-			travelTime: 3,
-			title: 'General maintenence',
-			description: 'There are som early signs of\ndamage. Someone should probably\nhave a look at it.'
-		})
-	);
+	if(this.tasks.length < 6) {
+		// Select random available problem
+		var selectedAvailableProblem = Math.floor(Math.random() * this.availableProblems.length);
+		console.log('selectedAvailableProblem: ', selectedAvailableProblem);
+		// Add problem to list of problems
+		this.problems.push(this.availableProblems[selectedAvailableProblem]);
+		console.log('problems: ', this.problems);
+		var targetProblem = this.problems.length - 1;
+		console.log('targetProblem: ', targetProblem);
 
-	// Register task
-	Vroom.registerEntity(this.tasks[this.tasks.length - 1]);
-	this.tasks[this.tasks.length - 1].onRegister();
+		// Create and add task for problem
+		this.tasks.push(
+			new Task({
+				parent: this,
+				targetProblem: targetProblem,
+				travelTime: this.travelTime,
+				title: this.problems[targetProblem].title,
+				description: this.problems[targetProblem].description,
+			})
+		);
+
+		// Register task
+		Vroom.registerEntity(this.tasks[this.tasks.length - 1]);
+		this.tasks[this.tasks.length - 1].onRegister();
+	}
 };
 
 Location.prototype.removeTask = function(id) {
 	Vroom.deregisterEntity(this.tasks[taskEntity]._id);
 	this.tasks[this.tasks.length - 1].onDeregister();
+};
+
+Location.prototype.getTotalUsage = function() {
+	var totalUsage = {
+		oxygen: this.usage.oxygen,
+		water: this.usage.water,
+		power: this.usage.power,
+	};
+
+	for(var problem in this.problems) {
+		if(this.problems[problem].usage) {
+			totalUsage.oxygen += this.problems[problem].usage.oxygen;
+			totalUsage.water += this.problems[problem].usage.water;
+			totalUsage.power += this.problems[problem].usage.power;
+		}
+	}
 };

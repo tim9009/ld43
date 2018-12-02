@@ -21,21 +21,23 @@ function Window(initArgs) {
 	this.renderHook = initArgs.renderHook || function() {};
 
 	// Dim
-	this.dim = initArgs.dim || {};
+	this.dim = initArgs.dim || null;
 	if(initArgs.dim) {
 		this.dim.width = initArgs.dim.width || 0;
 		this.dim.height = initArgs.dim.height || 0;
 	} else {
+		this.dim = {};
 		this.dim.width = 0;
 		this.dim.height = 0;
 	}
 
 	// Pos
-	this.pos = initArgs.pos || {};
+	this.pos = initArgs.pos || null;
 	if(initArgs.pos) {
 		this.pos.x = initArgs.pos.x || 0;
 		this.pos.y = initArgs.pos.y || 0;
 	} else {
+		this.pos = {};
 		this.pos.x = 0;
 		this.pos.y = 0;
 	}
