@@ -3,6 +3,7 @@ function Task(initArgs) {
 	// Extend VroomEntity NOTE: default arguments are placeholders and need to be replaced or defined.
 	VroomEntity.call(this, false);
 	this.parent = initArgs.parent || null;
+	this.targetProblem = initArgs.targetProblem;
 	this.title = initArgs.title || 'No name';
 	this.description = initArgs.description || 'No description';
 	this.taskStarted = false;
@@ -75,12 +76,11 @@ function Task(initArgs) {
 				width: 0,
 				height: 0,
 			},
-			assignedPeople: [],
 		},
 		openHook: function() {
 			// Init values
 			this.state.startIndex = 0;
-			this.state.assignedPeople = [];
+			this.parent.assignedPeople = [];
 
 			// Left arrow
 			this.state.leftArrowPos.x = this.contentPos.x;
@@ -97,6 +97,11 @@ function Task(initArgs) {
 		cancelHook: function() {
 			if(this.parent && this.parent.parent) {
 				this.parent.parent.windows.main.activateInput();
+			}
+		},
+		preConfirmHook: function() {
+			if(this.parent.assignedPeople.length > 0) {
+				return true;
 			}
 		},
 		confirmHook: function() {
@@ -130,12 +135,12 @@ function Task(initArgs) {
 					y: this.contentPos.y + this.state.peopleOffsetTop,
 				};
 
-				if(Vroom.isAreaClicked(pos, this.state.personDim, false)) {
+				if(map.people[i].alive && Vroom.isAreaClicked(pos, this.state.personDim, false)) {
 					
 					var match = false;
 					var matchIndex = null;
-					for(var ii = 0; ii < this.state.assignedPeople.length; ii++) {
-						if(this.state.assignedPeople[ii] == map.people[i]._id) {
+					for(var ii = 0; ii < this.parent.assignedPeople.length; ii++) {
+						if(this.parent.assignedPeople[ii] == map.people[i]._id) {
 							match = true;
 							matchIndex = ii;
 							break;
@@ -143,9 +148,9 @@ function Task(initArgs) {
 					}
 
 					if(match) {
-						this.state.assignedPeople.splice(matchIndex, 1);
+						this.parent.assignedPeople.splice(matchIndex, 1);
 					} else {
-						this.state.assignedPeople.push(map.people[i]._id);
+						this.parent.assignedPeople.push(map.people[i]._id);
 					}
 				}
 
@@ -162,7 +167,6 @@ function Task(initArgs) {
 			Vroom.ctx.fill();
 
 			// Right arrow
-			Vroom.ctx.fillStyle = '#fff';
 			Vroom.ctx.beginPath();
 			Vroom.ctx.moveTo(this.state.rightArrowPos.x, this.state.rightArrowPos.y);
 			Vroom.ctx.lineTo(this.state.rightArrowPos.x, this.state.rightArrowPos.y + this.state.rightArrowDim.height);
@@ -179,11 +183,21 @@ function Task(initArgs) {
 				};
 
 				// Box
-				// Check if person is assigned
-				if(this.state.assignedPeople.includes(map.people[i]._id)) {
-					Vroom.ctx.fillStyle = '#2B8D27';
+				// Check if person is alive
+				if(!map.people[i].alive) {
+					Vroom.ctx.fillStyle = '#000';
 				} else {
-					Vroom.ctx.fillStyle = '#333';
+					// Check if person is assigned to another task
+					if(map.people[i].assigned) {
+						Vroom.ctx.fillStyle = '#B9B9B9';
+					} else {
+						// Check if person is assigned to this task
+						if(this.parent.assignedPeople.includes(map.people[i]._id)) {
+							Vroom.ctx.fillStyle = '#2B8D27';
+						} else {
+							Vroom.ctx.fillStyle = '#333';
+						}
+					}
 				}
 				Vroom.ctx.fillRect(pos.x, pos.y, this.state.personDim.width, this.state.personDim.height);
 
@@ -191,7 +205,77 @@ function Task(initArgs) {
 				Vroom.ctx.textAlign = 'left';
 				Vroom.ctx.font = '8px lcd_solid';
 				Vroom.ctx.fillStyle = '#fff';
-				Vroom.ctx.fillText(map.people[i].name, pos.x + 4, pos.y + 10);
+				Vroom.ctx.fillText(map.people[i].name, pos.x + 5, pos.y + 15);
+
+				// If dead
+				if(!map.people[i].alive) {
+					Vroom.ctx.textAlign = 'left';
+					Vroom.ctx.font = '15px lcd_solid';
+					Vroom.ctx.fillStyle = '#fff';
+
+					Vroom.ctx.fillText('DEAD', pos.x + 5, pos.y + 65);
+
+					// Skip the rest of the rendering for this person
+					personNumber++;
+					continue;
+				}
+
+				// Stats
+				var target = 100;
+				var barOffsetSide = 5;
+				var healthOffsetTop = 28;
+				var statsOffsetTop = 48;
+
+				// Bars
+				var healthPercentage = Math.floor(map.people[i].stats.health * 100 / target);
+				var healthBarWidth = Math.floor((this.state.personDim.width - (barOffsetSide * 2)) * healthPercentage / 100);
+
+				var biologyPercentage = Math.floor(map.people[i].stats.biology * 100 / map.people[i].statMaxValue);
+				var biologyBarWidth = Math.floor((this.state.personDim.width - (barOffsetSide * 2)) * biologyPercentage / 100);
+
+				var electronicsPercentage = Math.floor(map.people[i].stats.electronics * 100 / map.people[i].statMaxValue);
+				var electronicsBarWidth = Math.floor((this.state.personDim.width - (barOffsetSide * 2)) * electronicsPercentage / 100);
+
+				var engineeringPercentage = Math.floor(map.people[i].stats.engineering * 100 / map.people[i].statMaxValue);
+				var engineeringBarWidth = Math.floor((this.state.personDim.width - (barOffsetSide * 2)) * engineeringPercentage / 100);
+
+				// Text settings
+				Vroom.ctx.textAlign = 'left';
+				Vroom.ctx.font = '5px lcd_solid';
+
+				// Render
+				Vroom.ctx.fillStyle = '#fff';
+				Vroom.ctx.fillText('Health', pos.x + barOffsetSide, pos.y + 28 + healthOffsetTop);
+
+				Vroom.ctx.fillStyle = '#B8202C';
+				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + healthOffsetTop, this.state.personDim.width - (barOffsetSide * 2), 4);
+
+				Vroom.ctx.fillStyle = '#2B8D27';
+				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + healthOffsetTop, healthBarWidth, 4);
+
+				var barNumber = 0;
+
+				Vroom.ctx.fillStyle = '#fff';
+				Vroom.ctx.fillText('Biology (' + map.people[i].stats.biology + ')', pos.x + barOffsetSide, pos.y + 28 + (12 * barNumber) + statsOffsetTop);
+
+				Vroom.ctx.fillStyle = '#2B8D27';
+				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + (12 * barNumber) + statsOffsetTop, biologyBarWidth, 2);
+
+				barNumber++;
+
+				Vroom.ctx.fillStyle = '#fff';
+				Vroom.ctx.fillText('Electronics (' + map.people[i].stats.electronics + ')', pos.x + barOffsetSide, pos.y + 28 + (12 * barNumber) + statsOffsetTop);
+
+				Vroom.ctx.fillStyle = '#2B8D27';
+				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + (12 * barNumber) + statsOffsetTop, electronicsBarWidth, 2);
+
+				barNumber++;
+
+				Vroom.ctx.fillStyle = '#fff';
+				Vroom.ctx.fillText('Engineering (' + map.people[i].stats.engineering + ')', pos.x + barOffsetSide, pos.y + 28 + (12 * barNumber) + statsOffsetTop);
+
+				Vroom.ctx.fillStyle = '#2B8D27';
+				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + (12 * barNumber) + statsOffsetTop, engineeringBarWidth, 2);
 
 				personNumber++;
 			}
@@ -244,14 +328,15 @@ Task.prototype.update = function(step) {
 			this.traveling = true;
 			this.workDone = true;
 			this.progress = 0;
+
+			this.onWorkDone();
+
 			console.log('The work is done. Heading back to base.');
 		}
 
 		// When arriving back to base
 		if(this.workDone && this.traveling && this.progress > this.travelTime) {
-			this.traveling = false;
-			this.taskDone = true;
-			console.log('Checking in.');
+			this.onDone();
 		}
 	}
 };
@@ -272,15 +357,96 @@ Task.prototype.onDeregister = function() {
 		this.windows[entity].hide();
 		Vroom.deregisterEntity(this.windows[entity]._id);
 	}
+
+	// Remove assigned status from all people assigned to this task
+	for(var i = 0; i < this.assignedPeople.length; i++) {
+		for(var ii = 0; ii < map.people.length; ii++) {
+			if(map.people[ii]._id === this.assignedPeople[i]) {
+				map.people[ii].assigned = false;
+				break;
+			}
+		}
+	}
 };
 
 Task.prototype.start = function() {
 	this.taskStarted = true;
 	this.traveling = true;
 	this.lastTimeUpdate = gameState.time;
+
+	// St assigned status for all people assigned to this task
+	for(var i = 0; i < this.assignedPeople.length; i++) {
+		for(var ii = 0; ii < map.people.length; ii++) {
+			if(map.people[ii]._id === this.assignedPeople[i]) {
+				map.people[ii].assigned = true;
+				break;
+			}
+		}
+	}
+
 	console.log('You\'ve got it! Heading out right away.');
 };
 
 Task.prototype.open = function() {
 	this.windows.choosePeople.show();
+};
+
+Task.prototype.calculateRisk = function() {
+	var problemType = this.parent.problems[this.targetProblem].type;
+	var baseRisk = this.parent.problems[this.targetProblem].risk;
+	var riskModifier = 0;
+
+	for(var i = 0; i < this.assignedPeople.length; i++) {
+		for(var ii = 0; ii < map.people.length; ii++) {
+			if(map.people[ii]._id === this.assignedPeople[i]) {
+				riskModifier += map.people[ii].stats[problemType];
+				break;
+			}
+		}
+	}
+
+	return baseRisk - riskModifier;
+};
+
+Task.prototype.onWorkDone = function() {
+	// Update people stats
+	var problemType = this.parent.problems[this.targetProblem].type;
+	var risk = this.calculateRisk();
+	var report = {
+		damage: [],
+	};
+
+	for(var i = 0; i < this.assignedPeople.length; i++) {
+		for(var ii = 0; ii < map.people.length; ii++) {
+			if(map.people[ii]._id === this.assignedPeople[i]) {
+				// Check if person takes damage
+				if(Math.floor(Math.random() * 100) + 1 <= risk) {
+					map.people[ii].stats.health -= risk;
+
+					report.damage.push({
+						name: map.people[ii].name,
+						damage: risk,
+					});
+				}
+
+				// Level up
+				map.people[ii].stats[problemType]++;
+				if(map.people[ii].stats[problemType] > map.people[ii].statMaxValue) {
+					map.people[ii].stats[problemType] = map.people[ii].statMaxValue;
+				}
+
+				break;
+			}
+		}
+	}
+
+	console.log(report);
+};
+
+Task.prototype.onDone = function() {
+	this.traveling = false;
+	this.taskDone = true;
+	this.parent.structure.current += 10;
+	console.log('Checking in.');
+	this.parent.removeTask(this._id);
 };

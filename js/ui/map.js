@@ -81,28 +81,66 @@ map.init = function() {
 			height: 52,
 		},
 		usage: {
+			oxygen: 3,
+			water: 3,
+			power: 2,
+		},
+		production: {
 			oxygen: 1,
 			water: 1,
-			power: 2,
+			power: 1,
 		},
 		availableProblems: [
 			{
-				title: 'problem 1',
-				description: 'Problem overe here yo',
+				title: 'Minor Oxygen Leak',
+				description: 'Microscopic fractures in the dome\nhas been detected.',
 				usage: {
-					oxygen: 2,
+					oxygen: 1,
 				},
-				severity: 10,
-				timeToCompleteWork: 5,
+				risk: 15,
+				type: 'engineering',
+				timeToCompleteWork: 3,
 			},
 			{
-				title: 'problem 2',
-				description: 'Another problem overe here yo',
+				title: 'Moderate Oxygen Leak',
+				description: 'One of the airlocks are not\nsealing properly.',
+				usage: {
+					oxygen: 1,
+					power: 1,
+				},
+				risk: 25,
+				type: 'engineering',
+				timeToCompleteWork: 6,
+			},
+			{
+				title: 'Severe Oxygen Leak',
+				description: 'The dome is failing! This needs to\nbe fixed immediately!',
 				usage: {
 					oxygen: 3,
-					power: 2,
+					power: 1,
 				},
-				severity: 30,
+				risk: 60,
+				type: 'engineering',
+				timeToCompleteWork: 9,
+			},
+			{
+				title: 'Cracked plumbing',
+				description: 'Water pressure is down. We are\nprobably losing water somewhere.',
+				production: {
+					water: -1,
+				},
+				risk: 30,
+				type: 'engineering',
+				timeToCompleteWork: 8,
+			},
+			{
+				title: 'Electrical glitches',
+				description: 'We have been experiencing some\n minor electrical glitches lately.',
+				production: {
+					power: -1,
+				},
+				risk: 20,
+				type: 'electronics',
 				timeToCompleteWork: 8,
 			},
 		],
@@ -123,7 +161,12 @@ map.init = function() {
 		usage: {
 			oxygen: 1,
 			water: 1,
-			power: 2,
+			power: 1,
+		},
+		production: {
+			oxygen: 0,
+			water: 0,
+			power: 4,
 		},
 		availableProblems: [
 			{
@@ -132,7 +175,8 @@ map.init = function() {
 				usage: {
 					oxygen: 2,
 				},
-				severity: 10,
+				risk: 10,
+				type: 'biology',
 				timeToCompleteWork: 5,
 			},
 			{
@@ -142,7 +186,8 @@ map.init = function() {
 					oxygen: 3,
 					power: 2,
 				},
-				severity: 30,
+				risk: 30,
+				type: 'electronics',
 				timeToCompleteWork: 8,
 			},
 		],
@@ -156,9 +201,9 @@ map.init = function() {
 		name: 'Person 1',
 		stats: {
 			health: 100,
-			science: 1,
+			biology: 10,
+			electronics: 5,
 			engineering: 2,
-			military: 3,
 		},
 	}));
 
@@ -166,9 +211,9 @@ map.init = function() {
 		name: 'Person 2',
 		stats: {
 			health: 100,
-			science: 1,
-			engineering: 2,
-			military: 3,
+			biology: 1,
+			electronics: 3,
+			engineering: 12,
 		},
 	}));
 
@@ -176,9 +221,9 @@ map.init = function() {
 		name: 'Person 3',
 		stats: {
 			health: 100,
-			science: 1,
+			biology: 1,
+			electronics: 3,
 			engineering: 2,
-			military: 3,
 		},
 	}));
 
@@ -186,9 +231,9 @@ map.init = function() {
 		name: 'Person 4',
 		stats: {
 			health: 100,
-			science: 1,
+			biology: 1,
+			electronics: 3,
 			engineering: 2,
-			military: 3,
 		},
 	}));
 
@@ -196,9 +241,9 @@ map.init = function() {
 		name: 'Person 5',
 		stats: {
 			health: 100,
-			science: 1,
+			biology: 1,
+			electronics: 3,
 			engineering: 2,
-			military: 3,
 		},
 	}));
 
@@ -212,24 +257,31 @@ map.init = function() {
 map.update = function(step) {
 	if(this.visible) {
 		if(this.inputActive) {
+			// Check for shift
+			var speed = this.scrollSpeed;
+
+			if(Vroom.isKeyPressed(16)) {
+				speed = this.scrollSpeed * 2;
+			}
+
 			// Trigger top
 			if(Vroom.isKeyPressed(38) || Vroom.isKeyPressed(87) || Vroom.isMouseOverArea(this.scrollTriggers.top.pos, this.scrollTriggers.top.dim, false)) {
-				Vroom.activeCamera.pos.y -= this.scrollSpeed;
+				Vroom.activeCamera.pos.y -= speed;
 			}
 
 			// Trigger right
 			if(Vroom.isKeyPressed(39) || Vroom.isKeyPressed(68) || Vroom.isMouseOverArea(this.scrollTriggers.right.pos, this.scrollTriggers.right.dim, false)) {
-				Vroom.activeCamera.pos.x += this.scrollSpeed;
+				Vroom.activeCamera.pos.x += speed;
 			}
 
 			// Trigger bottom
 			if(Vroom.isKeyPressed(40) || Vroom.isKeyPressed(83) || Vroom.isMouseOverArea(this.scrollTriggers.bottom.pos, this.scrollTriggers.bottom.dim, false)) {
-				Vroom.activeCamera.pos.y += this.scrollSpeed;
+				Vroom.activeCamera.pos.y += speed;
 			}
 
 			// Trigger left
 			if(Vroom.isKeyPressed(37) || Vroom.isKeyPressed(65) || Vroom.isMouseOverArea(this.scrollTriggers.left.pos, this.scrollTriggers.left.dim, false)) {
-				Vroom.activeCamera.pos.x -= this.scrollSpeed;
+				Vroom.activeCamera.pos.x -= speed;
 			}
 		}
 
@@ -267,14 +319,24 @@ map.show = function() {
 		Vroom.registerEntity(this.locations[location]);
 	}
 
+	// Register people
+	for (var i = 0; i < this.people.length; i++) {
+		Vroom.registerEntity(this.people[i]);
+	}
+
 	this.visible = true;
 };
 
 map.hide = function() {
-	// Register locations
+	// Deregsiter locations
 	for (var location in this.locations) {
 		this.locations[location].onDeregister();
 		Vroom.deregisterEntity(this.locations[location]._id);
+	}
+
+	// Deregister people
+	for (var i = 0; i < this.people.length; i++) {
+		Vroom.deregisterEntity(this.people[i]._id);
 	}
 
 	this.visible = false;

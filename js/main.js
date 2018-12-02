@@ -7,7 +7,7 @@ var gameState = {
 	gameStarted: false,
 	time: 0,
 	lastTimeUpdate: null,
-	timeInterval: 1000,
+	timeInterval: 100,
 	timeTick: false,
 	levels: {
 		oxygen: {

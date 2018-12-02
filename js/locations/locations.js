@@ -72,11 +72,13 @@ function Location(initArgs) {
 			description: initArgs.availableProblems[problem].description || 'No description',
 			usage: usage,
 			production: production,
-			severity: initArgs.availableProblems[problem].severity || 0,
+			risk: initArgs.availableProblems[problem].risk || 0,
+			type: initArgs.availableProblems[problem].type || 'engineering',
 			timeToCompleteWork: initArgs.availableProblems[problem].timeToCompleteWork || 0,
 		});
 	}
 	this.availableProblems = availableProblems;
+	this.lastAddedProblem = null;
 	this.problems = [];
 
 
@@ -121,6 +123,7 @@ function Location(initArgs) {
 			},
 		},
 		updateHook: function() {
+			// Tasks
 			var margin = 2;
 			var taskOffsetTop = 15;
 
@@ -131,21 +134,23 @@ function Location(initArgs) {
 
 			var rows = 0;
 			for(var i = 0; i < this.parent.tasks.length; i++) {
-				var pos = {
-					x: this.contentPos.x,
-					y: this.contentPos.y + ((dim.height + margin) * rows) + taskOffsetTop,
-				};
+					var pos = {
+						x: this.contentPos.x,
+						y: this.contentPos.y + ((dim.height + margin) * rows) + taskOffsetTop,
+					};
 
-				// Check if even
-				if(Math.abs(i % 2) === 1) {
-					rows += 1;
-					pos.x += dim.width + margin;
-				}
+					// Check if even
+					if(Math.abs(i % 2) === 1) {
+						rows += 1;
+						pos.x += dim.width + margin;
+					}
 
-				if(Vroom.isAreaClicked(pos, dim, false)) {
-					this.parent.tasks[i].open();
-					this.deactivateInput();
-				}
+					if(!this.parent.tasks[i].taskStarted) {
+						if(Vroom.isAreaClicked(pos, dim, false)) {
+							this.parent.tasks[i].open();
+							this.deactivateInput();
+						}
+					}
 			}
 		},
 		renderHook: function() {
@@ -165,7 +170,7 @@ function Location(initArgs) {
 
 			var dim = {
 				width: (this.contentDim.width / 2) - (margin / 2),
-				height: 32
+				height: 50,
 			};
 
 			var rows = 0;
@@ -183,7 +188,11 @@ function Location(initArgs) {
 				}
 
 				// Box
-				Vroom.ctx.fillStyle = '#333';
+				if(this.parent.tasks[i].taskStarted && !this.parent.tasks[i].taskDone) {
+					Vroom.ctx.fillStyle = '#B7B7B7';
+				} else {
+					Vroom.ctx.fillStyle = '#333';
+				}
 				Vroom.ctx.fillRect(pos.x, pos.y, dim.width, dim.height);
 
 				// Progress bar
@@ -201,7 +210,7 @@ function Location(initArgs) {
 					var barWidth = Math.floor(dim.width * progressPercentage / 100);
 
 					Vroom.ctx.fillStyle = '#2B8D27';
-					Vroom.ctx.fillRect(pos.x, pos.y + dim.height - 4, barWidth, 4);
+					Vroom.ctx.fillRect(pos.x, pos.y + dim.height - 2, barWidth, 2);
 				}
 
 				// Title
@@ -212,7 +221,7 @@ function Location(initArgs) {
 
 				Vroom.ctx.font = '6px lcd_solid';
 				// Description
-				Vroom.multilineText(this.parent.tasks[i].description, {x: pos.x + 4, y: pos.y + 20}, 7);
+				Vroom.multilineText(this.parent.tasks[i].description, {x: pos.x + 4, y: pos.y + 38}, 7);
 			}
 		}
 	});
@@ -319,9 +328,20 @@ Location.prototype.onDeregister = function() {
 };
 
 Location.prototype.addTask = function() {
-	if(this.tasks.length < 6) {
-		// Select random available problem
-		var selectedAvailableProblem = Math.floor(Math.random() * this.availableProblems.length);
+	if(this.tasks.length < 4) {
+		// Select available problem
+		var selectedAvailableProblem = null;
+		var timeout = 100;
+		for(var i = 0; i < timeout; i++) {
+			selectedAvailableProblem = Math.floor(Math.random() * this.availableProblems.length);
+
+			if(selectedAvailableProblem !== this.lastAddedProblem) {
+				break;
+			}
+		}
+		
+		this.lastAddedProblem = selectedAvailableProblem;
+
 		// Add problem to list of problems
 		this.problems.push(this.availableProblems[selectedAvailableProblem]);
 		var targetProblem = this.problems.length - 1;
@@ -345,8 +365,20 @@ Location.prototype.addTask = function() {
 };
 
 Location.prototype.removeTask = function(id) {
-	Vroom.deregisterEntity(this.tasks[taskEntity]._id);
-	this.tasks[this.tasks.length - 1].onDeregister();
+	for(var i = 0; i < this.tasks.length; i++) {
+		if(this.tasks[i]._id === id) {
+			// Deregister
+			Vroom.deregisterEntity(id);
+			this.tasks[i].onDeregister();
+
+			// Delete
+			this.tasks.splice(i, 1);
+
+			// Make shure input is activated
+			this.windows.main.activateInput();
+			break;
+		}
+	}
 };
 
 Location.prototype.getTotalUsage = function() {

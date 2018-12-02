@@ -17,7 +17,9 @@ function Window(initArgs) {
 	// Hooks
 	this.openHook = initArgs.openHook || function() {};
 	this.closeHook = initArgs.closeHook || function() {};
+	this.preConfirmHook = initArgs.preConfirmHook || function() { return true; };
 	this.confirmHook = initArgs.confirmHook || function() {};
+	this.preCancelHook = initArgs.preCancelHook || function() {return true; };
 	this.cancelHook = initArgs.cancelHook || function() {};
 	this.updateHook = initArgs.updateHook || function() {};
 	this.renderHook = initArgs.renderHook || function() {};
@@ -128,14 +130,18 @@ Window.prototype.update = function(step) {
 
 		// Cancel button
 		if(this.cancelButton && (Vroom.isAreaClicked(this.cancelButtonPos, this.cancelButtonDim, false) || Vroom.isKeyPressed(27))) {
-			this.hide();
-			this.cancelHook();
+			if(this.preCancelHook()) {
+				this.hide();
+				this.cancelHook();
+			}
 		}
 
 		// Confirm button
 		if(this.confirmButton && Vroom.isAreaClicked(this.confirmButtonPos, this.confirmButtonDim, false)) {
-			this.hide();
-			this.confirmHook();
+			if(this.preConfirmHook()) {
+				this.hide();
+				this.confirmHook();
+			}
 		}
 
 		this.updateHook(step);
