@@ -53,6 +53,7 @@ Person.prototype.update = function(step) {
 		// Check for death
 		if(this.stats.health <= 0) {
 			this.alive = 0;
+			this.assigned = false;
 			this.stats.health = 0;
 		}
 	}

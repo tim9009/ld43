@@ -54,10 +54,41 @@ generalInterface.render = function(camera) {
 	Vroom.ctx.fillText(timeString, this.pos.x + this.dim.width - 4, this.pos.y + 10);
 
 	// Resources
-	Vroom.ctx.textAlign = 'start';
-	var resourceString = 'O2:' + Math.floor((gameState.levels.oxygen.current * 100) / gameState.levels.oxygen.max) + '% H20:' + Math.floor((gameState.levels.water.current * 100) / gameState.levels.water.max) + '% POWER:' + Math.floor((gameState.levels.power.current * 100) / gameState.levels.power.max) + '%';
-	Vroom.ctx.fillText(resourceString, this.pos.x + 4, this.pos.y + 10);
+	var oxygenPercentage = Math.floor((gameState.levels.oxygen.current * 100) / gameState.levels.oxygen.max);
+	var waterPercentage = Math.floor((gameState.levels.water.current * 100) / gameState.levels.water.max);
+	var powerPercentage = Math.floor((gameState.levels.power.current * 100) / gameState.levels.power.max);
 
+	Vroom.ctx.textAlign = 'start';
+
+	// Oxygen
+	Vroom.ctx.fillStyle = '#fff';
+	if(oxygenPercentage <= 25) {
+		Vroom.ctx.fillStyle = '#B8000A';
+	}else
+	if(oxygenPercentage <= 50) {
+		Vroom.ctx.fillStyle = '#CC8F06';
+	}
+	Vroom.ctx.fillText('Air:' + oxygenPercentage + '%', this.pos.x + 4, this.pos.y + 10);
+
+	// Water
+	Vroom.ctx.fillStyle = '#fff';
+	if(waterPercentage <= 25) {
+		Vroom.ctx.fillStyle = '#B8000A';
+	}else
+	if(waterPercentage <= 50) {
+		Vroom.ctx.fillStyle = '#CC8F06';
+	}
+	Vroom.ctx.fillText('Water:' + waterPercentage + '%', this.pos.x + 4 + 45, this.pos.y + 10);
+
+	// Power
+	Vroom.ctx.fillStyle = '#fff';
+	if(powerPercentage <= 25) {
+		Vroom.ctx.fillStyle = '#B8000A';
+	}else
+	if(powerPercentage <= 50) {
+		Vroom.ctx.fillStyle = '#CC8F06';
+	}
+	Vroom.ctx.fillText('Power:' + oxygenPercentage + '%', this.pos.x + 4 + 100, this.pos.y + 10);
 };
 
 // Init call

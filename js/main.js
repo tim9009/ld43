@@ -12,15 +12,15 @@ var gameState = {
 	levels: {
 		oxygen: {
 			max: 1000,
-			current: 500,
+			current: 1000,
 		},
 		water: {
 			max: 1000,
-			current: 500,
+			current: 1000,
 		},
 		power: {
 			max: 1000,
-			current: 500,
+			current: 1000,
 		},
 	},
 };
@@ -56,20 +56,33 @@ Vroom.mainUpdateLoopExtension = function() {
 					gameState.levels.power.current -= usage.power;
 				}
 			}
+		}
 
-			// Limit to 0
-			if(gameState.levels.oxygen.current < 0) {
-				gameState.levels.oxygen.current = 0;
-			}
+		// Limit to 0
+		if(gameState.levels.oxygen.current < 0) {
+			gameState.levels.oxygen.current = 0;
+		}
 
-			if(gameState.levels.water.current < 0) {
-				gameState.levels.water.current = 0;
-			}
+		if(gameState.levels.water.current < 0) {
+			gameState.levels.water.current = 0;
+		}
 
-			if(gameState.levels.power.current < 0) {
-				gameState.levels.power.current = 0;
-			}
+		if(gameState.levels.power.current < 0) {
+			gameState.levels.power.current = 0;
+		}
 
+
+		// Limit to max
+		if(gameState.levels.oxygen.current > gameState.levels.oxygen.max) {
+			gameState.levels.oxygen.current = gameState.levels.oxygen.max;
+		}
+
+		if(gameState.levels.water.current > gameState.levels.water.max) {
+			gameState.levels.water.current = gameState.levels.water.max;
+		}
+
+		if(gameState.levels.power.current > gameState.levels.power.max) {
+			gameState.levels.power.current = gameState.levels.power.max;
 		}
 	}
 };

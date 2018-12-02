@@ -198,27 +198,37 @@ map.init = function() {
 	this.people = [];
 
 	this.people.push(new Person({
-		name: 'Person 1',
+		name: 'Gerald Stevens',
 		stats: {
 			health: 100,
-			biology: 10,
-			electronics: 5,
+			biology: 3,
+			electronics: 2,
+			engineering: 1,
+		},
+	}));
+
+	this.people.push(new Person({
+		name: 'Adriana Lutz',
+		stats: {
+			health: 100,
+			biology: 1,
+			electronics: 4,
 			engineering: 2,
 		},
 	}));
 
 	this.people.push(new Person({
-		name: 'Person 2',
+		name: 'Trevor Garcia',
 		stats: {
 			health: 100,
-			biology: 1,
+			biology: 2,
 			electronics: 3,
-			engineering: 12,
+			engineering: 1,
 		},
 	}));
 
 	this.people.push(new Person({
-		name: 'Person 3',
+		name: 'Averi Owen',
 		stats: {
 			health: 100,
 			biology: 1,
@@ -228,22 +238,32 @@ map.init = function() {
 	}));
 
 	this.people.push(new Person({
-		name: 'Person 4',
+		name: 'Kevin Eriksen',
 		stats: {
 			health: 100,
-			biology: 1,
-			electronics: 3,
+			biology: 4,
+			electronics: 1,
 			engineering: 2,
 		},
 	}));
 
 	this.people.push(new Person({
-		name: 'Person 5',
+		name: 'Kaylah Horn',
 		stats: {
 			health: 100,
 			biology: 1,
-			electronics: 3,
-			engineering: 2,
+			electronics: 2,
+			engineering: 3,
+		},
+	}));
+
+	this.people.push(new Person({
+		name: 'Ayden Rowe',
+		stats: {
+			health: 100,
+			biology: 2,
+			electronics: 1,
+			engineering: 4,
 		},
 	}));
 

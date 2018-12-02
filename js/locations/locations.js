@@ -164,6 +164,13 @@ function Location(initArgs) {
 			Vroom.ctx.fillStyle = '#fff';
 			Vroom.ctx.fillText(dataString, this.contentPos.x, this.contentPos.y + dataStringOffsetTop);
 
+			// Title
+			if(this.parent.tasks.length === 0) {
+				Vroom.ctx.fillText('No problems here!', this.contentPos.x, this.contentPos.y + dataStringOffsetTop + 10);
+			} else {
+				Vroom.ctx.fillText('Service tasks', this.contentPos.x, this.contentPos.y + dataStringOffsetTop + 10);
+			}
+
 			// Tasks
 			var taskOffsetTop = 15;
 			var margin = 2;
@@ -189,14 +196,14 @@ function Location(initArgs) {
 
 				// Box
 				if(this.parent.tasks[i].taskStarted && !this.parent.tasks[i].taskDone) {
-					Vroom.ctx.fillStyle = '#B7B7B7';
+					Vroom.ctx.fillStyle = '#808080';
 				} else {
 					Vroom.ctx.fillStyle = '#333';
 				}
 				Vroom.ctx.fillRect(pos.x, pos.y, dim.width, dim.height);
 
 				// Progress bar
-				if(this.parent.tasks[i].taskStarted && !this.parent.tasks[i].taskDone) {
+				if(this.parent.tasks[i].taskStarted) {
 					// Get current progress target
 					var progressTarget = 0;
 					if(this.parent.tasks[i].traveling) {
@@ -209,19 +216,117 @@ function Location(initArgs) {
 					var progressPercentage = Math.floor(this.parent.tasks[i].progress * 100 / progressTarget);
 					var barWidth = Math.floor(dim.width * progressPercentage / 100);
 
-					Vroom.ctx.fillStyle = '#2B8D27';
+					Vroom.ctx.fillStyle = '#fff';
 					Vroom.ctx.fillRect(pos.x, pos.y + dim.height - 2, barWidth, 2);
 				}
 
 				// Title
 				Vroom.ctx.textAlign = 'left';
-				Vroom.ctx.font = '8px lcd_solid';
+				Vroom.ctx.font = '7px lcd_solid';
 				Vroom.ctx.fillStyle = '#fff';
 				Vroom.ctx.fillText(this.parent.tasks[i].title, pos.x + 4, pos.y + 10);
 
-				Vroom.ctx.font = '6px lcd_solid';
+				if(this.parent.tasks[i].taskStarted) {
+					var statusString = '';
+
+					if(this.parent.tasks[i].traveling && !this.parent.tasks[i].workStarted) {
+						statusString = 'In transit to location.';
+					} else
+					if(!this.parent.tasks[i].traveling && this.parent.tasks[i].workStarted) {
+						statusString = 'Working on task.';
+					} else
+					if(this.parent.tasks[i].traveling && this.parent.tasks[i].workStarted) {
+						statusString = 'Heading back to base.';
+					}
+
+					Vroom.ctx.font = '5px lcd_solid';
+					Vroom.ctx.fillText(statusString, pos.x + 4, pos.y + 30);
+
+					// Skip the rest of the rendering for this task
+					continue;
+				}
+
+				Vroom.ctx.font = '5px lcd_solid';
+
+				// Type
+				var type = '';
+				var typeColor = '';
+				switch(this.parent.problems[this.parent.tasks[i].targetProblem].type) {
+					case 'biology':
+						type = 'Biology';
+						typeColor = '#7AFF69';
+						break;
+
+					case 'electronics':
+						type = 'Electronics';
+						typeColor = '#6BFCF6';
+						break;
+
+					case 'engineering':
+						type = 'Engineering';
+						typeColor = '#F8877C';
+						break;
+				}
+				Vroom.ctx.fillStyle = typeColor;
+				Vroom.ctx.fillText(type, pos.x + 4, pos.y + 17);
+
+				// Risk
+				Vroom.ctx.fillStyle = '#fff';
+				Vroom.ctx.fillRect(pos.x + dim.width - 19, pos.y, 19, 19);
+
+				Vroom.ctx.fillStyle = '#333';
+				Vroom.ctx.textAlign = 'center';
+				Vroom.ctx.fillText('RISK', pos.x - 9 + dim.width, pos.y + 9);
+				Vroom.ctx.fillText(this.parent.tasks[i].calculateRisk() + '%', pos.x + dim.width - 9, pos.y + 14);
+
+				// Effect
+				var usageString = '';
+
+				if(this.parent.problems[this.parent.tasks[i].targetProblem].usage.oxygen) {
+					usageString += 'Air(' + this.parent.problems[this.parent.tasks[i].targetProblem].usage.oxygen + ') ';
+				}
+
+				if(this.parent.problems[this.parent.tasks[i].targetProblem].usage.water) {
+					usageString += 'Water(' + this.parent.problems[this.parent.tasks[i].targetProblem].usage.water + ') ';
+				}
+
+				if(this.parent.problems[this.parent.tasks[i].targetProblem].usage.power) {
+					usageString += 'Power(' + this.parent.problems[this.parent.tasks[i].targetProblem].usage.power + ') ';
+				}
+
+				Vroom.ctx.textAlign = 'left';
+				Vroom.ctx.fillStyle = '#fff';
+
+				if(usageString !== '') {
+					Vroom.ctx.fillText('Draining pr. hour:', pos.x + 4, pos.y + 24);
+					Vroom.ctx.fillText(usageString, pos.x + 4, pos.y + 30);
+				}
+
+				var productionString = '';
+
+				if(this.parent.problems[this.parent.tasks[i].targetProblem].production.oxygen) {
+					productionString += 'Air(' + this.parent.problems[this.parent.tasks[i].targetProblem].production.oxygen + ') ';
+				}
+
+				if(this.parent.problems[this.parent.tasks[i].targetProblem].production.water) {
+					productionString += 'Water(' + this.parent.problems[this.parent.tasks[i].targetProblem].production.water + ') ';
+				}
+
+				if(this.parent.problems[this.parent.tasks[i].targetProblem].production.power) {
+					productionString += 'Power(' + this.parent.problems[this.parent.tasks[i].targetProblem].production.power + ') ';
+				}
+
+				Vroom.ctx.textAlign = 'left';
+				Vroom.ctx.fillStyle = '#fff';
+
+				if(productionString !== '') {
+					Vroom.ctx.fillText('Produciton pr. hour:', pos.x + 4, pos.y + 24);
+					Vroom.ctx.fillText(productionString, pos.x + 4, pos.y + 30);
+				}
+
 				// Description
-				Vroom.multilineText(this.parent.tasks[i].description, {x: pos.x + 4, y: pos.y + 38}, 7);
+				Vroom.ctx.fillStyle = '#CCCCCC';
+				Vroom.multilineText(this.parent.tasks[i].description, {x: pos.x + 4, y: pos.y + 38}, 6);
 			}
 		}
 	});
@@ -290,6 +395,16 @@ Location.prototype.render = function(camera) {
 
 	if(this.sprite) {
 		this.sprite.render(relPos, this.dim);
+	}
+
+	if(this.tasks.length > 0) {
+		Vroom.ctx.fillStyle = '#B8000A';
+		Vroom.ctx.fillRect(relPos.x + this.halfDim.width + 10, relPos.y - 9, 12, 12);
+
+		Vroom.ctx.fillStyle = '#fff';
+		Vroom.ctx.textAlign = 'center';
+		Vroom.ctx.font = '8px lcd_solid';
+		Vroom.ctx.fillText(this.tasks.length, relPos.x + this.halfDim.width + 16, relPos.y);
 	}
 
 	if(this.hover) {

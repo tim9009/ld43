@@ -30,7 +30,7 @@ function Task(initArgs) {
 		title: 'Who should perform the task?',
 		cancelButton: true,
 		confirmButton: true,
-		confirmText: 'Issue order',
+		confirmText: 'Send Crew',
 		dim: {
 			width: Vroom.dim.width - 30,
 			height: Vroom.dim.height - 30,
@@ -69,7 +69,7 @@ function Task(initArgs) {
 			},
 
 			//People
-			peopleOffsetTop: 5,
+			peopleOffsetTop: 8,
 			peopleOffsetSides: 15,
 			margin: 2,
 			personDim: {
@@ -173,6 +173,29 @@ function Task(initArgs) {
 			Vroom.ctx.lineTo(this.state.rightArrowPos.x + this.state.rightArrowDim.width, this.state.rightArrowPos.y + (this.state.rightArrowDim.height / 2));
 			Vroom.ctx.fill();
 
+			// Risk
+			switch(this.parent.parent.problems[this.parent.targetProblem].type) {
+				case 'biology':
+					Vroom.ctx.fillStyle = '#7AFF69';
+					break;
+
+				case 'electronics':
+					Vroom.ctx.fillStyle = '#6BFCF6';
+					break;
+
+				case 'engineering':
+					Vroom.ctx.fillStyle = '#F8877C';
+					break;
+			}
+
+			Vroom.ctx.font = '5px lcd_solid';
+			Vroom.ctx.fillRect(this.pos.x + this.dim.width - 19, this.pos.y, 19, 19);
+
+			Vroom.ctx.fillStyle = '#333';
+			Vroom.ctx.textAlign = 'center';
+			Vroom.ctx.fillText('RISK', this.pos.x - 9 + this.dim.width, this.pos.y + 9);
+			Vroom.ctx.fillText(this.parent.calculateRisk() + '%', this.pos.x + this.dim.width - 9, this.pos.y + 14);
+
 
 			// People
 			var personNumber = 0;
@@ -182,28 +205,25 @@ function Task(initArgs) {
 					y: this.contentPos.y + this.state.peopleOffsetTop,
 				};
 
+				// Check if person is assigned to this task
+				if(this.parent.assignedPeople.includes(map.people[i]._id)) {
+					var selectionThickness = 1;
+					Vroom.ctx.fillStyle = '#fff';
+					Vroom.ctx.fillRect(pos.x - selectionThickness, pos.y - selectionThickness, this.state.personDim.width + (selectionThickness * 2), this.state.personDim.height + (selectionThickness * 2));
+				}
+
 				// Box
 				// Check if person is alive
 				if(!map.people[i].alive) {
 					Vroom.ctx.fillStyle = '#000';
 				} else {
-					// Check if person is assigned to another task
-					if(map.people[i].assigned) {
-						Vroom.ctx.fillStyle = '#B9B9B9';
-					} else {
-						// Check if person is assigned to this task
-						if(this.parent.assignedPeople.includes(map.people[i]._id)) {
-							Vroom.ctx.fillStyle = '#2B8D27';
-						} else {
-							Vroom.ctx.fillStyle = '#333';
-						}
-					}
+					Vroom.ctx.fillStyle = '#333';
 				}
 				Vroom.ctx.fillRect(pos.x, pos.y, this.state.personDim.width, this.state.personDim.height);
 
 				// Title
 				Vroom.ctx.textAlign = 'left';
-				Vroom.ctx.font = '8px lcd_solid';
+				Vroom.ctx.font = '7px lcd_solid';
 				Vroom.ctx.fillStyle = '#fff';
 				Vroom.ctx.fillText(map.people[i].name, pos.x + 5, pos.y + 15);
 
@@ -213,7 +233,20 @@ function Task(initArgs) {
 					Vroom.ctx.font = '15px lcd_solid';
 					Vroom.ctx.fillStyle = '#fff';
 
-					Vroom.ctx.fillText('DEAD', pos.x + 5, pos.y + 65);
+					Vroom.ctx.fillText('DEAD', pos.x + 5, pos.y + 62);
+
+					// Skip the rest of the rendering for this person
+					personNumber++;
+					continue;
+				}
+
+				// If assigned
+				if(map.people[i].assigned) {
+					Vroom.ctx.textAlign = 'left';
+					Vroom.ctx.font = '6px lcd_solid';
+					Vroom.ctx.fillStyle = '#fff';
+
+					Vroom.multilineText('Currently assigned\nto another task', {x: pos.x + 5, y: pos.y + 45}, 7);
 
 					// Skip the rest of the rendering for this person
 					personNumber++;
@@ -223,8 +256,8 @@ function Task(initArgs) {
 				// Stats
 				var target = 100;
 				var barOffsetSide = 5;
-				var healthOffsetTop = 28;
-				var statsOffsetTop = 48;
+				var healthOffsetTop = 23;
+				var statsOffsetTop = 43;
 
 				// Bars
 				var healthPercentage = Math.floor(map.people[i].stats.health * 100 / target);
@@ -250,31 +283,40 @@ function Task(initArgs) {
 				Vroom.ctx.fillStyle = '#B8202C';
 				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + healthOffsetTop, this.state.personDim.width - (barOffsetSide * 2), 4);
 
-				Vroom.ctx.fillStyle = '#2B8D27';
+				Vroom.ctx.fillStyle = '#226F1F';
 				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + healthOffsetTop, healthBarWidth, 4);
 
 				var barNumber = 0;
 
-				Vroom.ctx.fillStyle = '#fff';
+				// Biology
+				Vroom.ctx.fillStyle = '#7AFF69';
 				Vroom.ctx.fillText('Biology (' + map.people[i].stats.biology + ')', pos.x + barOffsetSide, pos.y + 28 + (12 * barNumber) + statsOffsetTop);
 
-				Vroom.ctx.fillStyle = '#2B8D27';
+				Vroom.ctx.fillStyle = '#7D7D7D';
+				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + (12 * barNumber) + statsOffsetTop, this.state.personDim.width - (barOffsetSide * 2), 2);
+				Vroom.ctx.fillStyle = '#fff';
 				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + (12 * barNumber) + statsOffsetTop, biologyBarWidth, 2);
 
 				barNumber++;
 
-				Vroom.ctx.fillStyle = '#fff';
+				// Electronics
+				Vroom.ctx.fillStyle = '#6BFCF6';
 				Vroom.ctx.fillText('Electronics (' + map.people[i].stats.electronics + ')', pos.x + barOffsetSide, pos.y + 28 + (12 * barNumber) + statsOffsetTop);
 
-				Vroom.ctx.fillStyle = '#2B8D27';
+				Vroom.ctx.fillStyle = '#7D7D7D';
+				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + (12 * barNumber) + statsOffsetTop, this.state.personDim.width - (barOffsetSide * 2), 2);
+				Vroom.ctx.fillStyle = '#fff';
 				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + (12 * barNumber) + statsOffsetTop, electronicsBarWidth, 2);
 
 				barNumber++;
 
-				Vroom.ctx.fillStyle = '#fff';
+				// Engineering
+				Vroom.ctx.fillStyle = '#F8877C';
 				Vroom.ctx.fillText('Engineering (' + map.people[i].stats.engineering + ')', pos.x + barOffsetSide, pos.y + 28 + (12 * barNumber) + statsOffsetTop);
 
-				Vroom.ctx.fillStyle = '#2B8D27';
+				Vroom.ctx.fillStyle = '#7D7D7D';
+				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + (12 * barNumber) + statsOffsetTop, this.state.personDim.width - (barOffsetSide * 2), 2);
+				Vroom.ctx.fillStyle = '#fff';
 				Vroom.ctx.fillRect(pos.x + barOffsetSide, pos.y + 30 + (12 * barNumber) + statsOffsetTop, engineeringBarWidth, 2);
 
 				personNumber++;
