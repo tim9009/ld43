@@ -30,6 +30,18 @@ function Location(initArgs) {
 		this.usage.power = 0;
 	}
 
+	this.production = initArgs.production || null;
+	if(this.production) {
+		this.production.oxygen = initArgs.production.oxygen || 0;
+		this.production.water = initArgs.production.water || 0;
+		this.production.power = initArgs.production.power || 0;
+	} else {
+		this.production = {};
+		this.production.oxygen = 0;
+		this.production.water = 0;
+		this.production.power = 0;
+	}
+
 	// Problems
 	var availableProblems = [];
 	for(var problem in initArgs.availableProblems) {
@@ -44,11 +56,24 @@ function Location(initArgs) {
 			usage.power = 0;
 		}
 
+		var production = {};
+		if(initArgs.availableProblems[problem].production) {
+			production.oxygen = initArgs.availableProblems[problem].production.oxygen || 0;
+			production.water = initArgs.availableProblems[problem].production.water || 0;
+			production.power = initArgs.availableProblems[problem].production.power || 0;
+		} else {
+			production.oxygen = 0;
+			production.water = 0;
+			production.power = 0;
+		}
+
 		availableProblems.push({
 			title: initArgs.availableProblems[problem].title || 'No title',
 			description: initArgs.availableProblems[problem].description || 'No description',
 			usage: usage,
+			production: production,
 			severity: initArgs.availableProblems[problem].severity || 0,
+			timeToCompleteWork: initArgs.availableProblems[problem].timeToCompleteWork || 0,
 		});
 	}
 	this.availableProblems = availableProblems;
@@ -161,6 +186,24 @@ function Location(initArgs) {
 				Vroom.ctx.fillStyle = '#333';
 				Vroom.ctx.fillRect(pos.x, pos.y, dim.width, dim.height);
 
+				// Progress bar
+				if(this.parent.tasks[i].taskStarted && !this.parent.tasks[i].taskDone) {
+					// Get current progress target
+					var progressTarget = 0;
+					if(this.parent.tasks[i].traveling) {
+						progressTarget = this.parent.tasks[i].travelTime;
+					} else
+					if(this.parent.tasks[i].workStarted) {
+						progressTarget = this.parent.tasks[i].timeToCompleteWork;
+					}
+
+					var progressPercentage = Math.floor(this.parent.tasks[i].progress * 100 / progressTarget);
+					var barWidth = Math.floor(dim.width * progressPercentage / 100);
+
+					Vroom.ctx.fillStyle = '#2B8D27';
+					Vroom.ctx.fillRect(pos.x, pos.y + dim.height - 4, barWidth, 4);
+				}
+
 				// Title
 				Vroom.ctx.textAlign = 'left';
 				Vroom.ctx.font = '8px lcd_solid';
@@ -212,6 +255,12 @@ Location.prototype.update = function(step) {
 	// Deteriorate
 	if(gameState.timeTick) {
 		this.structure.current -= this.structure.deteriorationRate;
+
+		// Limit to 0
+		if(this.structure.current < 0) {
+			this.structure.current = 0;
+		}
+
 		this.timeTickCounter++;
 	}
 
@@ -221,8 +270,6 @@ Location.prototype.update = function(step) {
 
 		var random = Math.floor(Math.random() * this.structure.max) - (this.tasks.length * 25);
 		if(random > this.structure.current) {
-			console.log('Hello, my name is: ', this.name);
-			console.log('BEFORE: ', this.problems);
 			this.addTask();
 		}
 	}
@@ -275,12 +322,9 @@ Location.prototype.addTask = function() {
 	if(this.tasks.length < 6) {
 		// Select random available problem
 		var selectedAvailableProblem = Math.floor(Math.random() * this.availableProblems.length);
-		console.log('selectedAvailableProblem: ', selectedAvailableProblem);
 		// Add problem to list of problems
 		this.problems.push(this.availableProblems[selectedAvailableProblem]);
-		console.log('problems: ', this.problems);
 		var targetProblem = this.problems.length - 1;
-		console.log('targetProblem: ', targetProblem);
 
 		// Create and add task for problem
 		this.tasks.push(
@@ -288,6 +332,7 @@ Location.prototype.addTask = function() {
 				parent: this,
 				targetProblem: targetProblem,
 				travelTime: this.travelTime,
+				timeToCompleteWork: this.problems[targetProblem].timeToCompleteWork,
 				title: this.problems[targetProblem].title,
 				description: this.problems[targetProblem].description,
 			})
@@ -318,4 +363,24 @@ Location.prototype.getTotalUsage = function() {
 			totalUsage.power += this.problems[problem].usage.power;
 		}
 	}
+
+	return totalUsage;
+};
+
+Location.prototype.getTotalProduction = function() {
+	var totalProduction = {
+		oxygen: this.production.oxygen,
+		water: this.production.water,
+		power: this.production.power,
+	};
+
+	for(var problem in this.problems) {
+		if(this.problems[problem].production) {
+			totalProduction.oxygen += this.problems[problem].production.oxygen;
+			totalProduction.water += this.problems[problem].production.water;
+			totalProduction.power += this.problems[problem].production.power;
+		}
+	}
+
+	return totalProduction;
 };

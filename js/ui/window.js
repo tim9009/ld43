@@ -15,6 +15,8 @@ function Window(initArgs) {
 	this.inputActive = true;
 
 	// Hooks
+	this.openHook = initArgs.openHook || function() {};
+	this.closeHook = initArgs.closeHook || function() {};
 	this.confirmHook = initArgs.confirmHook || function() {};
 	this.cancelHook = initArgs.cancelHook || function() {};
 	this.updateHook = initArgs.updateHook || function() {};
@@ -59,6 +61,9 @@ function Window(initArgs) {
 		this.style.padding.bottom = 0;
 		this.style.padding.left = 0;
 	}
+
+	// Custom
+	this.state = initArgs.state || {};
 
 	this.init();
 }
@@ -189,15 +194,17 @@ Window.prototype.render = function(camera) {
 Window.prototype.updateDerrived = function() {
 	this.updateBounds();
 
+	var contentOffsetTop = 12;
+
 	// Content
 	this.contentPos = {
 		x: this.pos.x + this.style.padding.left,
-		y: this.pos.y + this.style.padding.top + 12,
+		y: this.pos.y + this.style.padding.top + contentOffsetTop,
 	};
 
 	this.contentDim = {
 		width: this.dim.width - this.style.padding.left - this.style.padding.right,
-		height: this.dim.height - this.style.padding.top - this.style.padding.bottom - 12,
+		height: this.dim.height - this.style.padding.top - this.style.padding.bottom - contentOffsetTop,
 	};
 
 	// Close button
@@ -214,7 +221,7 @@ Window.prototype.updateDerrived = function() {
 
 	this.confirmButtonPos = {
 		x: this.contentPos.x + this.contentDim.width - this.confirmButtonDim.width,
-		y: this.contentPos.y + this.contentDim.height - this.confirmButtonDim.height,
+		y: this.contentPos.y + this.contentDim.height,
 	};
 
 	// Cancel button
@@ -226,7 +233,7 @@ Window.prototype.updateDerrived = function() {
 	if(this.cancelButton) {
 		this.cancelButtonPos = {
 			x: this.contentPos.x + this.contentDim.width - this.cancelButtonDim.width - this.confirmButtonDim.width - 2,
-			y: this.contentPos.y + this.contentDim.height - this.cancelButtonDim.height,
+			y: this.contentPos.y + this.contentDim.height,
 		};
 	} else {
 		this.cancelButtonPos = this.closeButtonPos;
@@ -235,10 +242,12 @@ Window.prototype.updateDerrived = function() {
 
 Window.prototype.hide = function() {
 	this.visible = false;
+	this.closeHook();
 };
 
 Window.prototype.show = function() {
 	this.visible = true;
+	this.openHook();
 };
 
 Window.prototype.activateInput = function() {

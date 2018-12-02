@@ -12,6 +12,18 @@ function Person(initArgs) {
 		this.military = 0;
 	}
 
+	this.layer = 3;
+
+	this.dim = {
+		width: 0,
+		height: 0,
+	};
+
+	this.pos = {
+		x: 0,
+		y: 0,
+	};
+
 	this.init();
 }
 
@@ -21,24 +33,12 @@ Person.prototype.constructor = Person;
 
 // Init function
 Person.prototype.init = function() {
-	this.layer = 1;
-
-	this.dim = {
-		width: 0,
-		height: 0,
-	};
-
 	this.updateBounds();
-
-	this.pos = {
-		x: 0,
-		y: 0,
-	};
 };
 
 // Update function. Handles all logic for objects related to this class.
 Person.prototype.update = function(step) {
-
+	
 };
 
 // Render function. Draws all elements related to this module to screen.

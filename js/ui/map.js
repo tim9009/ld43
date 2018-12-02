@@ -71,7 +71,7 @@ map.init = function() {
 
 	this.locations.base = new Location({
 		name: 'Base',
-		travelTime: 0,
+		travelTime: 1,
 		pos: {
 			x: Vroom.dim.width - 35,
 			y: Vroom.dim.height - 26,
@@ -93,6 +93,7 @@ map.init = function() {
 					oxygen: 2,
 				},
 				severity: 10,
+				timeToCompleteWork: 5,
 			},
 			{
 				title: 'problem 2',
@@ -102,6 +103,7 @@ map.init = function() {
 					power: 2,
 				},
 				severity: 30,
+				timeToCompleteWork: 8,
 			},
 		],
 		sprite: new VroomSprite('sprites/base.png', false),
@@ -131,6 +133,7 @@ map.init = function() {
 					oxygen: 2,
 				},
 				severity: 10,
+				timeToCompleteWork: 5,
 			},
 			{
 				title: 'problem 2',
@@ -140,10 +143,64 @@ map.init = function() {
 					power: 2,
 				},
 				severity: 30,
+				timeToCompleteWork: 8,
 			},
 		],
 		sprite: new VroomSprite('sprites/thermal.png', false),
 	});
+
+	// People
+	this.people = [];
+
+	this.people.push(new Person({
+		name: 'Person 1',
+		stats: {
+			health: 100,
+			science: 1,
+			engineering: 2,
+			military: 3,
+		},
+	}));
+
+	this.people.push(new Person({
+		name: 'Person 2',
+		stats: {
+			health: 100,
+			science: 1,
+			engineering: 2,
+			military: 3,
+		},
+	}));
+
+	this.people.push(new Person({
+		name: 'Person 3',
+		stats: {
+			health: 100,
+			science: 1,
+			engineering: 2,
+			military: 3,
+		},
+	}));
+
+	this.people.push(new Person({
+		name: 'Person 4',
+		stats: {
+			health: 100,
+			science: 1,
+			engineering: 2,
+			military: 3,
+		},
+	}));
+
+	this.people.push(new Person({
+		name: 'Person 5',
+		stats: {
+			health: 100,
+			science: 1,
+			engineering: 2,
+			military: 3,
+		},
+	}));
 
 	// Register entity
 	Vroom.registerEntity(map);
