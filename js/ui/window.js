@@ -126,6 +126,7 @@ Window.prototype.update = function(step) {
 		if(this.closeButton && (Vroom.isAreaClicked(this.closeButtonPos, this.closeButtonDim, false) || Vroom.isKeyPressed(27))) {
 			this.hide();
 			this.cancelHook();
+			gameData.closeSound.play();
 		}
 
 		// Cancel button
@@ -133,6 +134,7 @@ Window.prototype.update = function(step) {
 			if(this.preCancelHook()) {
 				this.hide();
 				this.cancelHook();
+				gameData.closeSound.play();
 			}
 		}
 
@@ -141,6 +143,7 @@ Window.prototype.update = function(step) {
 			if(this.preConfirmHook()) {
 				this.hide();
 				this.confirmHook();
+				gameData.clickSound.play();
 			}
 		}
 

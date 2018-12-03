@@ -44,7 +44,7 @@ Person.prototype.init = function() {
 Person.prototype.update = function(step) {
 	if(this.alive) {
 		if(gameState.timeTick && !this.assigned) {
-			this.stats.health++;
+			this.stats.health += 0.5;
 			if(this.stats.health > 100) {
 				this.stats.health = 100;
 			}
@@ -55,6 +55,10 @@ Person.prototype.update = function(step) {
 			this.alive = 0;
 			this.assigned = false;
 			this.stats.health = 0;
+			gameData.deathSound.play();
+			generalInterface.addPopupMessage({
+				text: this.name + ' has died',
+			});
 		}
 	}
 };

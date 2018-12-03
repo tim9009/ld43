@@ -14,7 +14,7 @@ function Location(initArgs) {
 		deteriorationRate: 0.2,
 	};
 	this.timeTickCounter = 0;
-	this.eventInterval = 6;
+	this.eventInterval = 8;
 	this.travelTime = initArgs.travelTime || 0;
 
 	// Resources
@@ -149,6 +149,7 @@ function Location(initArgs) {
 						if(Vroom.isAreaClicked(pos, dim, false)) {
 							this.parent.tasks[i].open();
 							this.deactivateInput();
+							gameData.clickSound.play();
 						}
 					}
 			}
@@ -368,6 +369,7 @@ Location.prototype.update = function(step) {
 		this.active = true;
 		this.windows.main.show();
 		map.deactivateInput();
+		gameData.clickSound.play();
 	}
 
 	// Deactivate
@@ -492,6 +494,11 @@ Location.prototype.addTask = function() {
 		// Register task
 		Vroom.registerEntity(this.tasks[this.tasks.length - 1]);
 		this.tasks[this.tasks.length - 1].onRegister();
+
+		gameData.problemSound.play();
+		generalInterface.addPopupMessage({
+			text: this.problems[targetProblem].title + ' at ' + this.name,
+		});
 	}
 };
 

@@ -21,6 +21,21 @@ function start() {
 
 	// Set focus on window to make the game work when played in an iFrame
 	window.focus();
+
+	generalInterface.addPopupMessage({
+		text: 'Oh no! The supply ship crashed!',
+	});
+
+	generalInterface.addPopupMessage({
+		text: 'The damages are extensive!',
+	});
+
+	generalInterface.addPopupMessage({
+		text: 'Keep the colony alive and wait for help.',
+	});
+
+	// Add initial task
+	map.locations.base.addTask();
 }
 
 start();

@@ -102,6 +102,8 @@ function Task(initArgs) {
 		preConfirmHook: function() {
 			if(this.parent.assignedPeople.length > 0) {
 				return true;
+			} else {
+				gameData.errorSound.play();
 			}
 		},
 		confirmHook: function() {
@@ -135,7 +137,7 @@ function Task(initArgs) {
 					y: this.contentPos.y + this.state.peopleOffsetTop,
 				};
 
-				if(map.people[i].alive && Vroom.isAreaClicked(pos, this.state.personDim, false)) {
+				if(map.people[i].alive && !map.people[i].assigned && Vroom.isAreaClicked(pos, this.state.personDim, false)) {
 					
 					var match = false;
 					var matchIndex = null;
@@ -149,8 +151,10 @@ function Task(initArgs) {
 
 					if(match) {
 						this.parent.assignedPeople.splice(matchIndex, 1);
+						gameData.closeSound.play();
 					} else {
 						this.parent.assignedPeople.push(map.people[i]._id);
+						gameData.clickSound.play();
 					}
 				}
 
@@ -361,7 +365,6 @@ Task.prototype.update = function(step) {
 			this.traveling = false;
 			this.workStarted = true;
 			this.progress = 0;
-			console.log('Arrived on location. Starting work.');
 		}
 
 		// When work is done
@@ -371,8 +374,6 @@ Task.prototype.update = function(step) {
 			this.progress = 0;
 
 			this.onWorkDone();
-
-			console.log('The work is done. Heading back to base.');
 		}
 
 		// When arriving back to base
@@ -416,16 +417,38 @@ Task.prototype.start = function() {
 	this.lastTimeUpdate = gameState.time;
 
 	// St assigned status for all people assigned to this task
+	var firstAssignedName = '';
 	for(var i = 0; i < this.assignedPeople.length; i++) {
 		for(var ii = 0; ii < map.people.length; ii++) {
 			if(map.people[ii]._id === this.assignedPeople[i]) {
+
+				if(firstAssignedName === '') {
+					firstAssignedName = map.people[ii].name;
+				}
+
 				map.people[ii].assigned = true;
 				break;
 			}
 		}
 	}
 
-	console.log('You\'ve got it! Heading out right away.');
+	var startMessages = [
+		'Right away!',
+		'Will do!',
+		'You\'ve got it, boss.',
+		'Heading out now.',
+		'Yes, sir!',
+		'On it!',
+		'Should be manageble.',
+		'Hm, sounds complicated.',
+		'Don\'t worry, I\'m on it!'
+	];
+
+	var startMessage = startMessages[Math.floor(Math.random() * startMessages.length)];
+
+	generalInterface.addPopupMessage({
+		text: firstAssignedName + ': "' + startMessage + '"',
+	});
 };
 
 Task.prototype.open = function() {
@@ -488,4 +511,8 @@ Task.prototype.onDone = function() {
 	this.parent.structure.current += 10;
 	console.log('Checking in.');
 	this.parent.removeTask(this._id);
+	gameData.successSound.play();
+	generalInterface.addPopupMessage({
+		text: this.parent.problems[this.targetProblem].title + ' fixed!',
+	});
 };

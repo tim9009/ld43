@@ -1,5 +1,30 @@
 ////////////////////////////// GAME VARIABLES //////////////////////////////
-var gameData = {};
+var gameData = {
+	clickSound : new VroomSound('sounds/click_1.wav'),
+	closeSound : new VroomSound('sounds/close_1.wav'),
+	errorSound : new VroomSound('sounds/close_1.wav'),
+	problemSound : new VroomSound('sounds/failure_1.wav'),
+	successSound : new VroomSound('sounds/success_1.wav'),
+	deathSound : new VroomSound('sounds/death_1.wav'),
+};
+
+gameData.clickSound.loadBuffer();
+gameData.clickSound.gain = 0.1;
+
+gameData.closeSound.loadBuffer();
+gameData.closeSound.gain = 0.4;
+
+gameData.errorSound.loadBuffer();
+gameData.errorSound.gain = 0.4;
+
+gameData.problemSound.loadBuffer();
+gameData.problemSound.gain = 0.2;
+
+gameData.successSound.loadBuffer();
+gameData.successSound.gain = 0.1;
+
+gameData.deathSound.loadBuffer();
+gameData.deathSound.gain = 0.1;
 
 var gameState = {
 	gameLost: false,

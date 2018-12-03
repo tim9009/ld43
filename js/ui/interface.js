@@ -2,7 +2,7 @@ var generalInterface = new VroomEntity(false);
 
 // Init function for module. NOTE: default arguments are placeholders and need to be replaced or defined.
 generalInterface.init = function() {
-	this.layer = 3;
+	this.layer = 4;
 
 	this.dim = {
 		width: Vroom.dim.width,
@@ -16,6 +16,11 @@ generalInterface.init = function() {
 		y: 0,
 	};
 
+	this.popupMessageActive = false;
+	this.popupMessageDisplayDuration = 3000;
+	this.popupMessageDisplayStartTime = 0;
+	this.popupMessages = [];
+
 	// Register entity
 	Vroom.registerEntity(generalInterface);
 };
@@ -28,6 +33,18 @@ generalInterface.update = function(step) {
 		if(Vroom.mouseState.clicked) {
 			restart();
 		}
+	}
+
+	// Show new messages
+	if(this.popupMessages.length > 0 && !this.popupMessageActive) {
+		this.popupMessageActive = true;
+		this.popupMessageDisplayStartTime = Date.now();
+	}
+
+	// Delete message if duration has passed
+	if(this.popupMessageActive && Date.now() - this.popupMessageDisplayStartTime >= this.popupMessageDisplayDuration) {
+		this.popupMessages.splice(0, 1);
+		this.popupMessageActive = false;
 	}
 };
 
@@ -94,6 +111,30 @@ generalInterface.render = function(camera) {
 	}
 	Vroom.ctx.fillText('Power:' + powerPercentage + '%', this.pos.x + 4 + 100, this.pos.y + 10);
 
+	// Popup messages
+	if(this.popupMessageActive) {
+		var popupDim = {
+			width: 150,
+			height: 20,
+		};
+
+		var popupPos = {
+			x: 5,
+			y: Vroom.dim.height - popupDim.height - 5,
+		};
+
+		Vroom.ctx.fillStyle = '#333';
+		Vroom.ctx.fillRect(popupPos.x, popupPos.y, popupDim.width, popupDim.height);
+
+		Vroom.ctx.fillStyle = '#fff';
+		Vroom.ctx.font = '18px lcd_solid';
+		Vroom.multilineText('!', {x: popupPos.x, y: popupPos.y + 17}, 7);
+
+		Vroom.ctx.fillStyle = '#fff';
+		Vroom.ctx.font = '5px lcd_solid';
+		Vroom.multilineText(this.popupMessages[0].text, {x: popupPos.x + 15, y: popupPos.y + (popupDim.height / 2) + 2}, 7);
+	}
+
 	// Win screen
 	if(gameState.gameWon || gameState.gameLost) {
 		var dim = {
@@ -124,6 +165,14 @@ generalInterface.render = function(camera) {
 
 		Vroom.ctx.fillText('[Click to restart]', pos.x + (dim.width / 2), pos.y + dim.height - 20);
 	}
+};
+
+generalInterface.addPopupMessage = function(initArgs) {
+	initArgs = initArgs || {};
+
+	this.popupMessages.push({
+		text: initArgs.text || 'No text',
+	});
 };
 
 // Init call

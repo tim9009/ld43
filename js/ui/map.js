@@ -21,6 +21,12 @@ map.init = function() {
 
 	this.background = new VroomSprite('sprites/map.png', false);
 
+	this.scrollSoundInterval = 0;
+	this.lastScrollSoundPlayback = Date.now();
+	this.scrollSound = new VroomSound('sounds/scroll.wav');
+	this.scrollSound.loadBuffer();
+	this.scrollSound.gain = 0.1;
+
 	this.scrollTriggerSize = 10;
 
 	this.scrollTriggers = {
@@ -95,9 +101,9 @@ map.init = function() {
 				title: 'Minor Oxygen Leak',
 				description: 'Microscopic fractures in the dome\nhas been detected.',
 				usage: {
-					oxygen: 1,
+					oxygen: 2,
 				},
-				risk: 15,
+				risk: 20,
 				type: 'engineering',
 				timeToCompleteWork: 3,
 			},
@@ -105,10 +111,10 @@ map.init = function() {
 				title: 'Moderate Oxygen Leak',
 				description: 'One of the airlocks are not\nsealing properly.',
 				usage: {
-					oxygen: 1,
+					oxygen: 2,
 					power: 1,
 				},
-				risk: 25,
+				risk: 30,
 				type: 'engineering',
 				timeToCompleteWork: 6,
 			},
@@ -116,12 +122,12 @@ map.init = function() {
 				title: 'Severe Oxygen Leak',
 				description: 'The dome is failing! This needs to\nbe fixed immediately!',
 				usage: {
-					oxygen: 3,
-					power: 1,
+					oxygen: 4,
+					power: 2,
 				},
-				risk: 60,
+				risk: 65,
 				type: 'engineering',
-				timeToCompleteWork: 9,
+				timeToCompleteWork: 12,
 			},
 			{
 				title: 'Cracked plumbing',
@@ -129,7 +135,7 @@ map.init = function() {
 				production: {
 					water: -1,
 				},
-				risk: 30,
+				risk: 35,
 				type: 'engineering',
 				timeToCompleteWork: 8,
 			},
@@ -139,17 +145,27 @@ map.init = function() {
 				production: {
 					power: -1,
 				},
-				risk: 20,
+				risk: 25,
 				type: 'electronics',
 				timeToCompleteWork: 8,
 			},
+			{
+				title: 'Mold growth',
+				description: 'There has been reported some\nmold growth in the air ducts.',
+				production: {
+					air: -1,
+				},
+				risk: 25,
+				type: 'biology',
+				timeToCompleteWork: 5,
+			}
 		],
 		sprite: new VroomSprite('sprites/base.png', false),
 	});
 
 	this.locations.thermal = new Location({
 		name: 'Thermal',
-		travelTime: 3,
+		travelTime: 5,
 		pos: {
 			x: 42,
 			y: 84,
@@ -170,28 +186,230 @@ map.init = function() {
 		},
 		availableProblems: [
 			{
-				title: 'problem 1',
-				description: 'Problem overe here yo',
-				usage: {
-					oxygen: 2,
+				title: 'Inconcistent generation',
+				description: 'There may be something wrong.\nIt is worth checking out.',
+				production: {
+					power: -1,
 				},
-				risk: 10,
-				type: 'biology',
-				timeToCompleteWork: 5,
+				risk: 20,
+				type: 'electronics',
+				timeToCompleteWork: 4,
 			},
 			{
-				title: 'problem 2',
-				description: 'Another problem overe here yo',
+				title: 'Faulty airlock',
+				description: 'One of the airlocks are not\nsealing properly.',
 				usage: {
-					oxygen: 3,
-					power: 2,
+					oxygen: 2,
+					power: 1,
 				},
 				risk: 30,
-				type: 'electronics',
+				type: 'engineering',
+				timeToCompleteWork: 6,
+			},
+			{
+				title: 'Remote access failing',
+				description: 'Hopefully you just have to\nrestart the computers.',
+				usage: {
+					power: 2,
+				},
+				risk: 15,
+				type: 'engineering',
+				timeToCompleteWork: 6,
+			},
+			{
+				title: 'Broken conduit',
+				description: 'One of the power conduits seem\nto be broken!',
+				production: {
+					power: -2,
+				},
+				risk: 55,
+				type: 'engineering',
+				timeToCompleteWork: 10,
+			},
+			{
+				title: 'Clogged vents',
+				description: 'Some biomass has massed on the\nvents causing overheating.',
+				production: {
+					power: -1,
+				},
+				risk: 45,
+				type: 'biology',
 				timeToCompleteWork: 8,
 			},
 		],
 		sprite: new VroomSprite('sprites/thermal.png', false),
+	});
+
+	this.locations.solar = new Location({
+		name: 'Solar Array',
+		travelTime: 3,
+		pos: {
+			x: 470,
+			y: 250,
+		},
+		dim: {
+			width: 56,
+			height: 50,
+		},
+		usage: {
+			oxygen: 0,
+			water: 0,
+			power: 1,
+		},
+		production: {
+			oxygen: 0,
+			water: 0,
+			power: 3,
+		},
+		availableProblems: [
+			{
+				title: 'Inconcistent generation',
+				description: 'There may be something wrong.\nIt is worth checking out.',
+				production: {
+					power: -1,
+				},
+				risk: 20,
+				type: 'electronics',
+				timeToCompleteWork: 4,
+			},
+			{
+				title: 'Remote access failing',
+				description: 'Hopefully you just have to\nrestart the computers.',
+				usage: {
+					power: 1,
+				},
+				risk: 15,
+				type: 'engineering',
+				timeToCompleteWork: 6,
+			},
+			{
+				title: 'Broken panel',
+				description: 'One of the panels is draining power!',
+				usage: {
+					power: 2,
+				},
+				risk: 15,
+				type: 'engineering',
+				timeToCompleteWork: 6,
+			},
+			{
+				title: 'Broken conduit',
+				description: 'One of the power conduits seem\nto be broken!',
+				production: {
+					power: -2,
+				},
+				risk: 55,
+				type: 'engineering',
+				timeToCompleteWork: 10,
+			},
+			{
+				title: 'Clogged vents',
+				description: 'Some biomass has massed on the\nvents causing overheating.',
+				production: {
+					power: -1,
+				},
+				risk: 45,
+				type: 'biology',
+				timeToCompleteWork: 8,
+			},
+		],
+		sprite: new VroomSprite('sprites/solar.png', false),
+	});
+
+	this.locations.waterTreatment = new Location({
+		name: 'Water Treatment',
+		travelTime: 6,
+		pos: {
+			x: 150,
+			y: 250,
+		},
+		dim: {
+			width: 50,
+			height: 38,
+		},
+		usage: {
+			oxygen: 1,
+			water: 1,
+			power: 3,
+		},
+		production: {
+			oxygen: 1,
+			water: 4,
+			power: 0,
+		},
+		availableProblems: [
+			{
+				title: 'Inconcistent generation',
+				description: 'There may be something wrong.\nIt is worth checking out.',
+				production: {
+					water: -1,
+				},
+				risk: 20,
+				type: 'electronics',
+				timeToCompleteWork: 4,
+			},
+			{
+				title: 'Remote access failing',
+				description: 'Hopefully you just have to\nrestart the computers.',
+				usage: {
+					power: 2,
+				},
+				risk: 15,
+				type: 'engineering',
+				timeToCompleteWork: 6,
+			},
+			{
+				title: 'Broken pipes',
+				description: 'One of the water pipes seem\nto be broken!',
+				usage: {
+					water: 2,
+				},
+				risk: 55,
+				type: 'engineering',
+				timeToCompleteWork: 10,
+			},
+			{
+				title: 'Destroyed pipes',
+				description: 'Serious problems with the water pipes.',
+				usage: {
+					water: 3,
+				},
+				risk: 65,
+				type: 'engineering',
+				timeToCompleteWork: 12,
+			},
+			{
+				title: 'Clogged vents',
+				description: 'Some biomass has massed on the\nvents causing overheating.',
+				production: {
+					water: -1,
+				},
+				risk: 45,
+				type: 'biology',
+				timeToCompleteWork: 8,
+			},
+			{
+				title: 'Minor contaminants',
+				description: 'Some minor contaminants detected in\nthe water.',
+				production: {
+					water: -1,
+				},
+				risk: 35,
+				type: 'biology',
+				timeToCompleteWork: 4,
+			},
+			{
+				title: 'Serious contamination',
+				description: 'A strange strain of bacteria is\n multiplying fast!',
+				production: {
+					water: -3,
+				},
+				risk: 65,
+				type: 'biology',
+				timeToCompleteWork: 12,
+			},
+		],
+		sprite: new VroomSprite('sprites/water-treatment.png', false),
 	});
 
 	// People
@@ -201,9 +419,9 @@ map.init = function() {
 		name: 'Gerald Stevens',
 		stats: {
 			health: 100,
-			biology: 3,
-			electronics: 2,
-			engineering: 1,
+			biology: 6,
+			electronics: 3,
+			engineering: 2,
 		},
 	}));
 
@@ -211,9 +429,9 @@ map.init = function() {
 		name: 'Adriana Lutz',
 		stats: {
 			health: 100,
-			biology: 1,
-			electronics: 4,
-			engineering: 2,
+			biology: 2,
+			electronics: 6,
+			engineering: 3,
 		},
 	}));
 
@@ -251,9 +469,9 @@ map.init = function() {
 		name: 'Kaylah Horn',
 		stats: {
 			health: 100,
-			biology: 1,
-			electronics: 2,
-			engineering: 3,
+			biology: 2,
+			electronics: 3,
+			engineering: 6,
 		},
 	}));
 
@@ -279,6 +497,7 @@ map.update = function(step) {
 		if(this.inputActive) {
 			// Check for shift
 			var speed = this.scrollSpeed;
+			var moving = false;
 
 			if(Vroom.isKeyPressed(16)) {
 				speed = this.scrollSpeed * 2;
@@ -287,21 +506,34 @@ map.update = function(step) {
 			// Trigger top
 			if(Vroom.isKeyPressed(38) || Vroom.isKeyPressed(87) || Vroom.isMouseOverArea(this.scrollTriggers.top.pos, this.scrollTriggers.top.dim, false)) {
 				Vroom.activeCamera.pos.y -= speed;
+				moving = true;
 			}
 
 			// Trigger right
 			if(Vroom.isKeyPressed(39) || Vroom.isKeyPressed(68) || Vroom.isMouseOverArea(this.scrollTriggers.right.pos, this.scrollTriggers.right.dim, false)) {
 				Vroom.activeCamera.pos.x += speed;
+				moving = true;
 			}
 
 			// Trigger bottom
 			if(Vroom.isKeyPressed(40) || Vroom.isKeyPressed(83) || Vroom.isMouseOverArea(this.scrollTriggers.bottom.pos, this.scrollTriggers.bottom.dim, false)) {
 				Vroom.activeCamera.pos.y += speed;
+				moving = true;
 			}
 
 			// Trigger left
 			if(Vroom.isKeyPressed(37) || Vroom.isKeyPressed(65) || Vroom.isMouseOverArea(this.scrollTriggers.left.pos, this.scrollTriggers.left.dim, false)) {
 				Vroom.activeCamera.pos.x -= speed;
+				moving = true;
+			}
+
+			// Play scroll
+			if(moving) {
+				if(this.scrollSound.playing) {
+					this.lastScrollSoundPlayback = Date.now();
+				} else if(Date.now() - this.lastScrollSoundPlayback >= this.scrollSoundInterval) {
+					this.scrollSound.play();
+				}
 			}
 		}
 
