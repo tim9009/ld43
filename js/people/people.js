@@ -44,7 +44,7 @@ Person.prototype.init = function() {
 Person.prototype.update = function(step) {
 	if(this.alive) {
 		if(gameState.timeTick && !this.assigned) {
-			this.stats.health += 0.5;
+			this.stats.health += 1;
 			if(this.stats.health > 100) {
 				this.stats.health = 100;
 			}
