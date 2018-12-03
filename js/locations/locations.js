@@ -14,7 +14,7 @@ function Location(initArgs) {
 		deteriorationRate: 0.2,
 	};
 	this.timeTickCounter = 0;
-	this.eventInterval = 10;
+	this.eventInterval = 6;
 	this.travelTime = initArgs.travelTime || 0;
 
 	// Resources
@@ -154,6 +154,22 @@ function Location(initArgs) {
 			}
 		},
 		renderHook: function() {
+			// Production
+			var totalProduction = this.parent.getTotalProduction();
+			var totalUsage = this.parent.getTotalUsage();
+			Vroom.ctx.textAlign = 'left';
+			Vroom.ctx.font = '5px lcd_solid';
+
+			Vroom.ctx.fillStyle = '#fff';
+			Vroom.ctx.fillRect(this.pos.x + 125, this.pos.y, 120, 19);
+
+			var productionString = 'Producing: ' + totalProduction.oxygen + ' Air, ' + totalProduction.water + ' Water, ' + totalProduction.power + ' Power';
+			var usageString = 'Consuming: ' + totalUsage.oxygen + ' Air, ' + totalUsage.water + ' Water, ' + totalUsage.power + ' Power';
+
+			Vroom.ctx.fillStyle = '#627F89';
+			Vroom.ctx.fillText(productionString, this.pos.x + 130 + 4, this.pos.y + 8);
+			Vroom.ctx.fillText(usageString, this.pos.x + 130 + 4, this.pos.y + 15);
+			
 			// Data
 			var dataString = 'Maintenance: ' + Math.floor((this.parent.structure.current * 100) / this.parent.structure.max) + '%';
 

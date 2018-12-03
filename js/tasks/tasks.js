@@ -352,9 +352,8 @@ Task.prototype.init = function() {
 Task.prototype.update = function(step) {
 	if(this.taskStarted && !this.taskDone) {
 		if(this.lastTimeUpdate !== gameState.time) {
-			this.progress += gameState.time - this.lastTimeUpdate;
+			this.progress ++;
 			this.lastTimeUpdate = gameState.time;
-			console.log(this.progress);
 		}
 
 		// When arriving on location
@@ -481,8 +480,6 @@ Task.prototype.onWorkDone = function() {
 			}
 		}
 	}
-
-	console.log(report);
 };
 
 Task.prototype.onDone = function() {

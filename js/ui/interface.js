@@ -24,7 +24,11 @@ generalInterface.init = function() {
 
 // Update function. Handles all logic for objects related to this module.
 generalInterface.update = function(step) {
-
+	if(gameState.gameWon || gameState.gameLost) {
+		if(Vroom.mouseState.clicked) {
+			restart();
+		}
+	}
 };
 
 // Render function. Draws all elements related to this module to screen.
@@ -88,7 +92,38 @@ generalInterface.render = function(camera) {
 	if(powerPercentage <= 50) {
 		Vroom.ctx.fillStyle = '#CC8F06';
 	}
-	Vroom.ctx.fillText('Power:' + oxygenPercentage + '%', this.pos.x + 4 + 100, this.pos.y + 10);
+	Vroom.ctx.fillText('Power:' + powerPercentage + '%', this.pos.x + 4 + 100, this.pos.y + 10);
+
+	// Win screen
+	if(gameState.gameWon || gameState.gameLost) {
+		var dim = {
+			width: 200,
+			height: 120,
+		};
+
+		var pos = {
+			x: (Vroom.dim.width / 2) - (dim.width / 2),
+			y: (Vroom.dim.height / 2) - (dim.height / 2) + 10,
+		};
+
+		Vroom.ctx.fillStyle = '#627F89';
+		Vroom.ctx.fillRect(pos.x, pos.y, dim.width, dim.height);
+
+		Vroom.ctx.fillStyle = '#fff';
+		Vroom.ctx.font = '8px lcd_solid';
+
+		Vroom.ctx.textAlign = 'center';
+
+		if(gameState.gameWon) {
+			Vroom.multilineText('Well done!\n\nYou managed to keep this colony\ntogether until help could arrive.\nThe sacrifice of those who died will\nalways be remembered.', {x: pos.x + (dim.width / 2), y: pos.y + 20}, 10);
+		} else
+		if(gameState.gameLost) {
+			Vroom.multilineText('What a tragedy!\n\nHelp arrived only to find the colony\nin ruins. Every single colonist dead.\nSuch a waste.', {x: pos.x + (dim.width / 2), y: pos.y + 20}, 10);
+		}
+
+
+		Vroom.ctx.fillText('[Click to restart]', pos.x + (dim.width / 2), pos.y + dim.height - 20);
+	}
 };
 
 // Init call

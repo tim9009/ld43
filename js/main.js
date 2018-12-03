@@ -5,9 +5,9 @@ var gameState = {
 	gameLost: false,
 	gameWon: false,
 	gameStarted: false,
-	time: 0,
+	time: 14 * 24,
 	lastTimeUpdate: null,
-	timeInterval: 100,
+	timeInterval: 1000,
 	timeTick: false,
 	levels: {
 		oxygen: {
@@ -25,8 +25,54 @@ var gameState = {
 	},
 };
 
+function restart() {
+	gameState = {
+		gameLost: false,
+		gameWon: false,
+		gameStarted: false,
+		time: 14 * 24,
+		lastTimeUpdate: null,
+		timeInterval: 1000,
+		timeTick: false,
+		levels: {
+			oxygen: {
+				max: 1000,
+				current: 1000,
+			},
+			water: {
+				max: 1000,
+				current: 1000,
+			},
+			power: {
+				max: 1000,
+				current: 1000,
+			},
+		}
+	};
+
+	map.hide();
+	map.init();
+	map.show();
+
+	Vroom.activeCamera.pos = {
+		x: Vroom.dim.width / 2,
+		y: Vroom.dim.height / 2,
+	};
+
+	gameState.gameStarted = true;
+}
+
 Vroom.mainUpdateLoopExtension = function() {
-	if(gameState.gameStarted) {
+	if(gameState.gameStarted && !gameState.gameWon && !gameState.gameLost) {
+		// Check fo win/lose
+		if(gameState.levels.oxygen.current <= 0, gameState.levels.water.current <= 0, gameState.levels.power.current <= 0) {
+			gameState.gameLost = true;
+		}
+
+		if(gameState.time === 0) {
+			gameState.gameWon = true;
+		}
+
 		gameState.timeTick = false;
 		if(gameState.lastTimeUpdate === null) {
 			gameState.lastTimeUpdate = Date.now();
@@ -34,7 +80,7 @@ Vroom.mainUpdateLoopExtension = function() {
 
 		// Timestep
 		if(Date.now() - gameState.lastTimeUpdate >= gameState.timeInterval) {
-			gameState.time++;
+			gameState.time--;
 			gameState.timeTick = true;
 			gameState.lastTimeUpdate = Date.now();
 
